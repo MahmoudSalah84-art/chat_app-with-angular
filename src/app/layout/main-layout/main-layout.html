@@ -1,0 +1,17 @@
+
+<div class="h-screen w-screen flex bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
+  <div
+    class="w-full md:w-[380px] lg:w-[400px] shrink-0 border-e border-gray-200 dark:border-wa-dark-border h-full md:block"
+    [class.hidden]="hasSelectedChat()"
+  >
+    <app-chat-list></app-chat-list>
+  </div>
+ 
+  <div
+    class="flex-1 h-full md:block"
+    [class.hidden]="!hasSelectedChat()" 
+  >
+    <app-chat-window></app-chat-window>
+
+  </div>
+</div>

@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* بنفعّل dark: variant بحيث يشتغل بناءً على class="dark" على الـ html
+   بدل ما يعتمد بس على إعدادات نظام التشغيل (prefers-color-scheme) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   WhatsApp Clone - Global Styles & Design Tokens
+   ========================================================================== */
+
+@theme {
+  /* ألوان مستوحاة من واتساب */
+  --color-wa-green-dark: #075e54;
+  --color-wa-green: #128c7e;
+  --color-wa-green-light: #25d366;
+  --color-wa-teal-light: #dcf8c6;
+  --color-wa-bg-chat: #efeae2;
+  --color-wa-bg-panel: #f0f2f5;
+  --color-wa-gray-icon: #54656f;
+  --color-wa-border: #d1d7db;
+  --color-wa-blue-tick: #53bdeb;
+
+  /* Dark mode */
+  --color-wa-dark-bg: #111b21;
+  --color-wa-dark-panel: #202c33;
+  --color-wa-dark-bubble: #005c4b;
+  --color-wa-dark-border: #2a3942;
+
+  --font-family-sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family-sans);
+}
+
+/* انتقال سلس بين الوضع العادي والليلي */
+body, body * {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar احترافي شبيه بواتساب */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

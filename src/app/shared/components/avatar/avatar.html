@@ -1,0 +1,17 @@
+<div class="relative shrink-0" [style.width.px]="size()" [style.height.px]="size()">
+  <img
+    [src]="src()"
+    [alt]="alt()"
+    class="w-full h-full rounded-full object-cover bg-gray-200"
+  />
+
+  @if (showOnlineDot()) {
+    <span
+      class="absolute bottom-0 right-0 rounded-full border-2 border-white"
+      [class.bg-wa-green-light]="isOnline()"
+      [class.bg-gray-300]="!isOnline()"
+      [style.width.px]="size() * 0.28"
+      [style.height.px]="size() * 0.28"
+    ></span>
+  }
+</div>

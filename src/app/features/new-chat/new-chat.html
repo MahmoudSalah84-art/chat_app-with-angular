@@ -1,0 +1,54 @@
+<div class="flex flex-col h-full bg-white dark:bg-wa-dark-panel">
+  <!-- Header -->
+  <div class="flex items-center gap-4 px-4 py-3 bg-wa-bg-panel dark:bg-wa-dark-panel border-b border-gray-200 dark:border-wa-dark-border">
+    <button (click)="onBack()" class="text-wa-gray-icon dark:text-gray-300 shrink-0" aria-label="رجوع">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100">محادثة جديدة</h1>
+  </div>
+
+  <!-- Search -->
+  <div class="px-3 py-2 bg-white dark:bg-wa-dark-panel border-b border-gray-100 dark:border-wa-dark-border">
+    <div class="flex items-center gap-2 bg-wa-bg-panel dark:bg-wa-dark-bg rounded-lg px-3 py-1.5">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-wa-gray-icon dark:text-gray-400 shrink-0">
+        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input
+        #contactSearch
+        type="text"
+        (input)="onSearchChange(contactSearch.value)"
+        placeholder="بحث بالاسم"
+        class="bg-transparent outline-none text-sm w-full text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+      />
+    </div>
+  </div>
+
+  <!-- Contacts -->
+  <div class="flex-1 overflow-y-auto">
+    <p class="px-4 py-2 text-xs text-wa-green-light font-medium">جهات الاتصال</p>
+
+    @for (contact of filteredContacts(); track contact.id) {
+      <button
+        (click)="onSelectContact(contact.id)"
+        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-start"
+      >
+
+        <app-avatar
+          [src]="contact.avatarUrl"
+          [size]="46"
+          [showOnlineDot]="true"
+          [isOnline]="contact.isOnline"
+        />
+        <div class="flex-1 min-w-0">
+          <h3 class="text-[15px] font-medium text-gray-900 dark:text-gray-100 truncate">{{ contact.name }}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ contact.about || 'مرحبًا! بستخدم التطبيق ده' }}</p>
+        </div>
+      </button>
+    } @empty {
+      <p class="text-center text-gray-400 dark:text-gray-500 mt-10 text-sm">مفيش نتائج بحث</p>
+    }
+  </div>
+</div>
