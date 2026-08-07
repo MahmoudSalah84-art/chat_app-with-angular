@@ -1,0 +1,88 @@
+<div class="min-h-screen w-full flex items-center justify-center bg-wa-bg-panel dark:bg-wa-dark-bg px-4">
+  <div class="w-full max-w-md">
+    <!-- الشعار -->
+    <div class="flex flex-col items-center mb-8">
+      <div class="w-16 h-16 rounded-2xl bg-wa-green-light flex items-center justify-center mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">إنشاء حساب جديد</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">خطوة واحدة وتبدأ تتكلم مع أصحابك</p>
+    </div>
+
+    <!-- الفورم -->
+    <form (ngSubmit)="onSubmit()" class="bg-white dark:bg-wa-dark-panel rounded-xl shadow-sm p-6 space-y-4">
+      @if (errorMessage()) {
+        <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm rounded-lg px-3 py-2">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div>
+        <label for="name" class="block text-sm text-gray-600 dark:text-gray-300 mb-1.5">الاسم</label>
+        <input
+          id="name"
+          type="text"
+          name="name"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          placeholder="اسمك بالكامل"
+          class="w-full bg-wa-bg-panel dark:bg-wa-dark-bg rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-wa-green-light placeholder:text-gray-400"
+          required
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm text-gray-600 dark:text-gray-300 mb-1.5">الإيميل</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          placeholder="example@email.com"
+          dir="ltr"
+          class="w-full bg-wa-bg-panel dark:bg-wa-dark-bg rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-wa-green-light placeholder:text-gray-400"
+          required
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm text-gray-600 dark:text-gray-300 mb-1.5">كلمة السر</label>
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          placeholder="6 حروف على الأقل"
+          dir="ltr"
+          class="w-full bg-wa-bg-panel dark:bg-wa-dark-bg rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-wa-green-light placeholder:text-gray-400"
+          required
+        />
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="isLoading()"
+        class="w-full bg-wa-green-light hover:bg-wa-green text-white font-medium rounded-lg py-2.5 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+      >
+        @if (isLoading()) {
+          <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="9" stroke-width="3" opacity="0.3"/>
+            <path d="M21 12a9 9 0 00-9-9" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <span>جاري الإنشاء...</span>
+        } @else {
+          <span>إنشاء الحساب</span>
+        }
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">
+      عندك حساب بالفعل؟
+      <a routerLink="/login" class="text-wa-green dark:text-wa-green-light font-medium hover:underline">سجّل دخولك</a>
+    </p>
+  </div>
+</div>
