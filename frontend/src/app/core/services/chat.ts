@@ -45,6 +45,10 @@ export class ChatService {
   private readonly _replyToMessageId = signal<string | null>(null);
   readonly replyToMessageId = this._replyToMessageId.asReadonly();
 
+  /** الرسالة اللي المستخدم بيعدّلها دلوقتي (null لو مفيش تعديل جاري) */
+  private readonly _editingMessageId = signal<string | null>(null);
+  readonly editingMessageId = this._editingMessageId.asReadonly();
+
   /** الـ id بتاع المحادثة اللي الطرف التاني فيها "بيكتب دلوقتي" (محاكاة وهمية) */
   private readonly _typingChatId = signal<string | null>(null);
   readonly typingChatId = this._typingChatId.asReadonly();
@@ -85,10 +89,18 @@ export class ChatService {
     return this._messages().find((msg) => msg.id === id);
   });
 
+  /** الرسالة الكاملة اللي بيتم تعديلها دلوقتي (لتعبئة الـ Input بمحتواها) */
+  readonly editingMessage = computed<Message | undefined>(() => {
+    const id = this._editingMessageId();
+    if (!id) return undefined;
+    return this._messages().find((msg) => msg.id === id);
+  });
+
   /** فتح محادثة معينة */
   selectChat(chatId: string): void {
     this._selectedChatId.set(chatId);
     this._replyToMessageId.set(null); // نصفّر أي رد كان جاري لما نغيّر المحادثة
+    this._editingMessageId.set(null); // ونصفّر أي تعديل كان جاري كمان
     this.markChatAsRead(chatId);
   }
 
@@ -127,7 +139,26 @@ export class ChatService {
     this.selectChat(newChat.id);
   }
 
-  /** تحديث نص البحث */
+  /**
+   * إنشاء مجموعة جديدة بأعضاء متعددين.
+   * المستخدم الحالي بينضم تلقائيًا كأول عضو في المجموعة.
+   */
+  createGroup(name: string, avatarUrl: string, participantIds: string[]): void {
+    const selectedContacts = this.contacts.filter((user) => participantIds.includes(user.id));
+    if (!name.trim() || selectedContacts.length === 0) return;
+
+    const newGroup: Chat = {
+      id: `chat-${Date.now()}`,
+      isGroup: true,
+      name: name.trim(),
+      avatarUrl,
+      participants: [this.currentUser(), ...selectedContacts],
+      unreadCount: 0,
+    };
+
+    this._chats.update((chats) => [newGroup, ...chats]);
+    this.selectChat(newGroup.id);
+  }
   setSearchQuery(query: string): void {
     this._searchQuery.set(query);
   }
@@ -139,12 +170,69 @@ export class ChatService {
 
   /** بدء الرد على رسالة معينة */
   setReplyTo(messageId: string): void {
+    this._editingMessageId.set(null); // مينفعش ترد وتعدّل في نفس الوقت
     this._replyToMessageId.set(messageId);
   }
 
   /** إلغاء الرد الحالي */
   cancelReply(): void {
     this._replyToMessageId.set(null);
+  }
+
+  /** بدء تعديل رسالة معينة (لازم تكون رسالتك إنت، ومش محذوفة) */
+  startEditMessage(messageId: string): void {
+    const message = this.findMessageById(messageId);
+    if (!message || message.senderId !== this.currentUser().id || message.isDeleted) return;
+
+    this._replyToMessageId.set(null); // مينفعش تعدّل وترد في نفس الوقت
+    this._editingMessageId.set(messageId);
+  }
+
+  /** إلغاء التعديل الحالي */
+  cancelEdit(): void {
+    this._editingMessageId.set(null);
+  }
+
+  /** حفظ التعديل على الرسالة اللي بيتم تعديلها دلوقتي */
+  saveEditedMessage(newContent: string): void {
+    const messageId = this._editingMessageId();
+    const trimmed = newContent.trim();
+    if (!messageId || !trimmed) return;
+
+    this._messages.update((messages) =>
+      messages.map((msg) => (msg.id === messageId ? { ...msg, content: trimmed, isEdited: true } : msg)),
+    );
+
+    // لو الرسالة دي هي آخر رسالة في المحادثة، نحدّث المعاينة في القائمة كمان
+    this._chats.update((chats) =>
+      chats.map((chat) => {
+        if (chat.lastMessage?.id !== messageId) return chat;
+        return { ...chat, lastMessage: { ...chat.lastMessage, content: trimmed, isEdited: true } };
+      }),
+    );
+
+    this._editingMessageId.set(null);
+  }
+
+  /** حذف رسالة (لازم تكون رسالتك إنت) - بيستبدل المحتوى بنص "تم حذف الرسالة" */
+  deleteMessage(messageId: string): void {
+    const message = this.findMessageById(messageId);
+    if (!message || message.senderId !== this.currentUser().id) return;
+
+    this._messages.update((messages) =>
+      messages.map((msg) =>
+        msg.id === messageId ? { ...msg, isDeleted: true, content: '', replyToMessageId: undefined } : msg,
+      ),
+    );
+
+    this._chats.update((chats) =>
+      chats.map((chat) => {
+        if (chat.lastMessage?.id !== messageId) return chat;
+        return { ...chat, lastMessage: { ...chat.lastMessage, isDeleted: true, content: '' } };
+      }),
+    );
+
+    if (this._editingMessageId() === messageId) this._editingMessageId.set(null);
   }
 
   /** تصفير عدد الرسائل الغير مقروءة لما تفتح الشات */
@@ -260,54 +348,15 @@ export class ChatService {
     );
   }
 
-  /** تعديل محتوى رسالة نصية سبق إرسالها (المستخدم الحالي بس) */
-  editMessage(messageId: string, newContent: string): void {
-    const trimmed = newContent.trim();
-    if (!trimmed) return;
- 
-    this._messages.update((messages) =>
-      messages.map((msg) =>
-        msg.id === messageId ? { ...msg, content: trimmed, isEdited: true } : msg,
-      ),
-    );
- 
-    this.syncLastMessageIfNeeded(messageId);
-  }
-
-  /** حذف رسالة (Soft Delete): بنسيب مكانها بس نستبدل المحتوى بـ "تم حذف هذه الرسالة" */
-  deleteMessage(messageId: string): void {
-    this._messages.update((messages) =>
-      messages.map((msg) =>
-        msg.id === messageId
-          ? { ...msg, content: '', isDeleted: true, replyToMessageId: undefined }
-          : msg,
-      ),
-    );
- 
-    this.syncLastMessageIfNeeded(messageId);
-  }
-
-  
-  /** لو الرسالة اللي اتعدلت أو اتحذفت هي آخر رسالة في شاتها، نحدّث نسخة الـ Chat كمان */
-  private syncLastMessageIfNeeded(messageId: string): void {
-    const updatedMessage = this._messages().find((msg) => msg.id === messageId);
-    if (!updatedMessage) return;
- 
-    this._chats.update((chats) =>
-      chats.map((chat) =>
-        chat.lastMessage?.id === messageId ? { ...chat, lastMessage: updatedMessage } : chat,
-      ),
-    );
-  }
-
   private updateMessageStatus(messageId: string, status: MessageStatus): void {
     this._messages.update((messages) =>
       messages.map((msg) => (msg.id === messageId ? { ...msg, status } : msg)),
     );
   }
 
-  /** تحديث بيانات المستخدم الحالي (الاسم، النبذة، أو الصورة) من صفحة البروفايل */
-  updateProfile(changes: Partial<Pick<User, 'name' | 'about' | 'avatarUrl'>>): void {
+  
+  /** تحديث بيانات المستخدم الحالي (الاسم، النبذة، الصورة، أو الإيميل) */
+  updateProfile(changes: Partial<Pick<User, 'name' | 'about' | 'avatarUrl' | 'email'>>): void {
     this._currentUser.update((user) => ({ ...user, ...changes }));
   }
 }

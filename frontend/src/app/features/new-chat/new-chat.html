@@ -28,6 +28,19 @@
 
   <!-- Contacts -->
   <div class="flex-1 overflow-y-auto">
+    <!-- زرار مجموعة جديدة -->
+    <button
+      (click)="onNewGroupClick()"
+      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-start border-b border-gray-100 dark:border-wa-dark-border"
+    >
+      <div class="w-[46px] h-[46px] rounded-full bg-wa-green-light flex items-center justify-center shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="text-[15px] font-medium text-gray-900 dark:text-gray-100">مجموعة جديدة</span>
+    </button>
+
     <p class="px-4 py-2 text-xs text-wa-green-light font-medium">جهات الاتصال</p>
 
     @for (contact of filteredContacts(); track contact.id) {
@@ -35,7 +48,6 @@
         (click)="onSelectContact(contact.id)"
         class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-start"
       >
-
         <app-avatar
           [src]="contact.avatarUrl"
           [size]="46"

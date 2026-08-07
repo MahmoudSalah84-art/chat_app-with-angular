@@ -10,10 +10,10 @@
 
 @theme {
   /* ألوان مستوحاة من واتساب */
-  --color-wa-green-dark: #075e54;
-  --color-wa-green: #128c7e;
-  --color-wa-green-light: #25d366;
-  --color-wa-teal-light: #dcf8c6;
+  --color-wa-green-dark: #0c597c;
+  --color-wa-green: #12618c;
+  --color-wa-green-light: #2533d3;
+  --color-wa-teal-light: #719ddf;
   --color-wa-bg-chat: #efeae2;
   --color-wa-bg-panel: #f0f2f5;
   --color-wa-gray-icon: #54656f;
@@ -23,7 +23,7 @@
   /* Dark mode */
   --color-wa-dark-bg: #111b21;
   --color-wa-dark-panel: #202c33;
-  --color-wa-dark-bubble: #005c4b;
+  --color-wa-dark-bubble: #44236c;
   --color-wa-dark-border: #2a3942;
 
   --font-family-sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;

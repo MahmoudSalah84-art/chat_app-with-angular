@@ -40,4 +40,8 @@ export class NewChat {
   onBack(): void {
     this.uiService.showChats();
   }
+
+  onNewGroupClick(): void {
+    this.uiService.showNewGroup();
+  }
 }

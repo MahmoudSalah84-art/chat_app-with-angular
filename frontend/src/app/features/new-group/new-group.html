@@ -1,0 +1,131 @@
+<div class="flex flex-col h-full bg-white dark:bg-wa-dark-panel">
+  @if (step() === 'selectMembers') {
+    <!-- ===== الخطوة 1: اختيار الأعضاء ===== -->
+    <div class="flex items-center gap-4 px-4 py-3 bg-wa-bg-panel dark:bg-wa-dark-panel border-b border-gray-200 dark:border-wa-dark-border">
+      <button (click)="onClose()" class="text-wa-gray-icon dark:text-gray-300 shrink-0" aria-label="رجوع">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100">مجموعة جديدة</h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          {{ selectedCount() > 0 ? selectedCount() + ' من الأعضاء متختارين' : 'اختر الأعضاء' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="px-3 py-2 bg-white dark:bg-wa-dark-panel border-b border-gray-100 dark:border-wa-dark-border">
+      <div class="flex items-center gap-2 bg-wa-bg-panel dark:bg-wa-dark-bg rounded-lg px-3 py-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-wa-gray-icon dark:text-gray-400 shrink-0">
+          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input
+          #memberSearch
+          type="text"
+          (input)="onSearchChange(memberSearch.value)"
+          placeholder="بحث بالاسم"
+          class="bg-transparent outline-none text-sm w-full text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+        />
+      </div>
+    </div>
+
+    <!-- Contacts (multi-select) -->
+    <div class="flex-1 overflow-y-auto">
+      @for (contact of filteredContacts(); track contact.id) {
+        <button
+          (click)="toggleContact(contact.id)"
+          class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-start"
+        >
+          <div class="relative shrink-0">
+            <app-avatar [src]="contact.avatarUrl" [size]="46" />
+            @if (selectedIds().has(contact.id)) {
+              <span class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-wa-green-light border-2 border-white dark:border-wa-dark-panel flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white">
+                  <path d="M20 6L9 17l-5-5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-[15px] font-medium text-gray-900 dark:text-gray-100 truncate">{{ contact.name }}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ contact.about || 'مرحبًا! بستخدم التطبيق ده' }}</p>
+          </div>
+        </button>
+      } @empty {
+        <p class="text-center text-gray-400 dark:text-gray-500 mt-10 text-sm">مفيش نتائج بحث</p>
+      }
+    </div>
+
+    <!-- زر التالي: يظهر بس لو فيه أعضاء متختارين -->
+    @if (selectedCount() > 0) {
+      <div class="p-4 border-t border-gray-100 dark:border-wa-dark-border">
+        <button
+          (click)="goToDetailsStep()"
+          class="w-full bg-wa-green-light hover:bg-wa-green text-white font-medium rounded-lg py-2.5 transition-colors"
+        >
+          التالي ({{ selectedCount() }})
+        </button>
+      </div>
+    }
+  } @else {
+    <!-- ===== الخطوة 2: اسم وصورة المجموعة ===== -->
+    <div class="flex items-center gap-4 px-4 py-3 bg-wa-bg-panel dark:bg-wa-dark-panel border-b border-gray-200 dark:border-wa-dark-border">
+      <button (click)="onClose()" class="text-wa-gray-icon dark:text-gray-300 shrink-0" aria-label="رجوع">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100">مجموعة جديدة</h1>
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+      <!-- صورة واسم المجموعة -->
+      <div class="flex items-center gap-4 px-6 py-6">
+        <input #avatarInput type="file" accept="image/*" class="hidden" (change)="onAvatarSelected($event)" />
+        <button (click)="onAvatarClick()" class="relative group shrink-0" aria-label="تغيير صورة المجموعة">
+          <app-avatar [src]="groupAvatar()" [size]="70" />
+          <div class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 3l-1.7 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.3L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+            </svg>
+          </div>
+        </button>
+
+        <input
+          type="text"
+          [ngModel]="groupName()"
+          (ngModelChange)="groupName.set($event)"
+          placeholder="اسم المجموعة"
+          class="flex-1 border-b-2 border-wa-green-light bg-transparent outline-none text-gray-900 dark:text-gray-100 py-1.5"
+        />
+      </div>
+
+      <!-- الأعضاء المختارين -->
+      <p class="px-6 py-2 text-xs text-wa-green-light font-medium">
+        الأعضاء: {{ selectedCount() }}
+      </p>
+      <div class="flex flex-wrap gap-3 px-6 pb-4">
+        @for (contact of selectedContacts(); track contact.id) {
+          <div class="flex flex-col items-center gap-1 w-16">
+            <app-avatar [src]="contact.avatarUrl" [size]="48" />
+            <span class="text-xs text-gray-600 dark:text-gray-300 truncate w-full text-center">{{ contact.name }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- زر الإنشاء -->
+    <div class="p-4 border-t border-gray-100 dark:border-wa-dark-border">
+      <button
+        (click)="onCreateGroup()"
+        [disabled]="!groupName().trim()"
+        class="w-full bg-wa-green-light hover:bg-wa-green text-white font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50"
+      >
+        إنشاء المجموعة
+      </button>
+    </div>
+  }
+</div>
