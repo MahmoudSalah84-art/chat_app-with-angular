@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+using chatme.Application.Common;
+using chatme.Application.Common.DTO;
+using chatme.Domain.Common;
+using MediatR;
 
 namespace chatme.Application.Features.Auth.Commands.Register
 {
-	internal class RegisterUserCommand
-	{
-	}
+	public sealed record RegisterUserCommand(string Name, string Email, string Password) : IRequest<Result<AuthResponseDto>>;
+
+
 }

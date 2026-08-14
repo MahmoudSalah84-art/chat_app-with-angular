@@ -1,6 +1,9 @@
-﻿namespace chatme.Application.Features.Messages.Commands.DeleteMessage
+﻿using chatme.Application.Common;
+using chatme.Domain.Common;
+using MediatR;
+
+namespace chatme.Application.Features.Messages.Commands.DeleteMessage
 {
-	internal class DeleteMessageCommand
-	{
-	}
+	public sealed record DeleteMessageCommand(Guid ChatId, Guid MessageId) : IRequest<Result>;
+
 }

@@ -1,16 +1,25 @@
-﻿using chatme.Application.Features.Chats.EventHandlers;
-using chatme.Application.Features.Chats.Queries.GetChatMessages;
-using chatme.Application.Features.Chats.Queries.GetUserChats;
-using chatme.Application.Features.Users.Commands;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using chatme.Application.Common.Interfaces;
+using chatme.Domain.Events;
+using MediatR;
+
 
 namespace chatme.Application.Features.Chats.EventHandlers
 {
-	internal class ChatCreatedDomainEventHandlers
+
+	public sealed class DirectChatCreatedDomainEventHandler(
+		IChatNotificationService notificationService) : INotificationHandler<DirectChatCreatedDomainEvent>
 	{
+		public Task Handle(DirectChatCreatedDomainEvent notification, CancellationToken cancellationToken) =>
+			notificationService.NotifyChatCreatedAsync(notification.ChatId, notification.ParticipantIds, cancellationToken);
 	}
+
+	public sealed class GroupChatCreatedDomainEventHandler(
+		IChatNotificationService notificationService) : INotificationHandler<GroupChatCreatedDomainEvent>
+	{
+		public Task Handle(GroupChatCreatedDomainEvent notification, CancellationToken cancellationToken) =>
+			notificationService.NotifyChatCreatedAsync(notification.ChatId, notification.ParticipantIds, cancellationToken);
+	}
+
 }
 
 

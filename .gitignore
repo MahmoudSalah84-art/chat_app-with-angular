@@ -133,3 +133,4 @@ Migrations/
 node_modules/
 dist/
 .angular/
+/backend/chatme/chatme.API/appsettings.json

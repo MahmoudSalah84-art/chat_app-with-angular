@@ -1,23 +1,29 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using chatme.Application.Common.DTO;
+using chatme.Application.Features.Users.Commands.UpdateProfile;
+using chatme.Application.Features.Users.Queries.GetContacts;
+using chatme.Application.Features.Users.Queries.GetProfile;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chatme.API.Controllers
 {
-	[ApiController]
+
 	[Route("api/users")]
 	[Authorize]
-	public sealed class UsersController(IMediator mediator) : ControllerBase
+	public sealed class UsersController(IMediator mediator) : ApiControllerBase
 	{
 		[HttpGet("me")]
 		public async Task<ActionResult<UserDto>> GetProfile(CancellationToken cancellationToken) =>
-			Ok(await mediator.Send(new GetCurrentUserProfileQuery(), cancellationToken));
+			HandleResult(await mediator.Send(new GetCurrentUserProfileQuery(), cancellationToken));
 
 		[HttpPut("me")]
 		public async Task<ActionResult<UserDto>> UpdateProfile(UpdateProfileCommand command, CancellationToken cancellationToken) =>
-			Ok(await mediator.Send(command, cancellationToken));
+			HandleResult(await mediator.Send(command, cancellationToken));
 
 		[HttpGet("contacts")]
 		public async Task<ActionResult<List<UserDto>>> GetContacts(CancellationToken cancellationToken) =>
-			Ok(await mediator.Send(new GetContactsQuery(), cancellationToken));
+			HandleResult(await mediator.Send(new GetContactsQuery(), cancellationToken));
 	}
+
 }
