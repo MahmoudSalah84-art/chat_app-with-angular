@@ -54,3 +54,83 @@ typings/
 
 .DS_Store
 Thumbs.db
+
+
+
+
+
+
+# for .NET Core project
+
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+logs/
+Logs/
+
+# Test results
+TestResults/
+*.trx
+
+# Coverage
+coverage/
+.coverage
+*.coveragexml
+
+# ASP.NET Core / local settings
+appsettings.Development.json
+appsettings.Local.json
+
+# User secrets
+secrets.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Publish output
+publish/
+Publish/
+
+# Azure / deployment
+*.publishsettings
+
+# Entity Framework
+Migrations/
+
+# Node / Angular (if frontend exists in the same repo)
+node_modules/
+dist/
+.angular/
+/backend/chatme/chatme.API/appsettings.json

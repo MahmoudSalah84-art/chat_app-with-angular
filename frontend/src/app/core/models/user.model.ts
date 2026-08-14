@@ -4,10 +4,10 @@
 export interface User {
   id: string;
   name: string;
+  email: string;
   avatarUrl: string;
-  about?: string;
-  phone?: string;
-  email?: string;
+  about?: string | null;
+  phoneNumber?: string | null;
   isOnline: boolean;
-  lastSeen?: Date;
+  lastSeenAt?: string | null; // ISO string جاي من الـ API، بنحوّله لـ Date وقت العرض
 }

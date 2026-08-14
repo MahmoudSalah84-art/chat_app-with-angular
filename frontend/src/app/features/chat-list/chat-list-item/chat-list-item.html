@@ -1,8 +1,10 @@
 <div
   (click)="onClick()"
-  class="flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 transition-colors"
+  class="flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-wa-dark-border transition-colors"
   [class.bg-wa-bg-panel]="isSelected()"
+  [class.dark:bg-wa-dark-bg]="isSelected()"
   [class.hover:bg-gray-50]="!isSelected()"
+  [class.dark:hover:bg-white/5]="!isSelected()"
 >
   <app-avatar
     [src]="chat().avatarUrl"
@@ -12,29 +14,31 @@
   />
 
   <div class="flex-1 min-w-0">
-
-
     <div class="flex items-center justify-between">
-      <h3 class="text-[15px] font-medium text-gray-900 truncate">{{ chat().name }}</h3>
+      <h3 class="text-[15px] font-medium text-gray-900 dark:text-gray-100 truncate">{{ chat().name }}</h3>
       <span
         class="text-xs shrink-0 ms-2"
         [class.text-wa-green-light]="chat().unreadCount > 0"
         [class.text-gray-400]="chat().unreadCount === 0"
+        [class.dark:text-gray-500]="chat().unreadCount === 0"
       >
         {{ lastMessageTime() }}
       </span>
     </div>
 
     <div class="flex items-center justify-between mt-0.5">
-      <p class="text-sm text-gray-500 truncate max-w-[50%]">{{ lastMessagePreview() }}</p>
+      <p class="text-sm truncate max-w-[85%]">
+        @if (isTyping()) {
+          <span class="text-wa-green-light">يكتب الآن...</span>
+        } @else {
+          <span class="text-gray-500 dark:text-gray-400">{{ lastMessagePreview() }}</span>
+        }
+      </p>
       @if (chat().unreadCount > 0) {
-        <span
-          class="bg-wa-green-light text-white text-xs font-semibold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shrink-0"
-        >
+        <span class="bg-wa-green-light text-white text-xs font-semibold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shrink-0">
           {{ chat().unreadCount }}
         </span>
       }
     </div>
-    
   </div>
 </div>

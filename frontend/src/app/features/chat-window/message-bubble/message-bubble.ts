@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Message } from '../../../core/models/message.model';
-import { MessageStatus, MessageType } from '../../../core/enums/message-status.enum';
+import { MessageType } from '../../../core/enums/message-type.enum';
+import { AuthService } from '../../../core/services/auth';
 import { ChatService } from '../../../core/services/chat';
 
 @Component({
@@ -11,35 +12,26 @@ import { ChatService } from '../../../core/services/chat';
 })
 export class MessageBubble {
   private readonly chatService = inject(ChatService);
+  private readonly authService = inject(AuthService);
 
   readonly message = input.required<Message>();
 
-  /** هل الرسالة دي مبعوتة من المستخدم الحالي (تظهر يمين) */
-  readonly isOwnMessage = computed(
-    () => this.message().senderId === this.chatService.currentUser().id,
-  );
+  readonly isOwnMessage = computed(() => this.message().senderId === this.authService.currentUser()?.id);
 
-  /** لو الرسالة دي رد على رسالة تانية، نجيب الرسالة الأصلية عشان نعرض معاينة منها */
   readonly repliedMessage = computed(() => {
     const replyId = this.message().replyToMessageId;
     if (!replyId) return undefined;
-    return this.chatService.findMessageById(replyId);
+    return this.chatService.selectedChatMessages().find((m) => m.id === replyId);
   });
 
   readonly time = computed(() =>
-    this.message().timestamp.toLocaleTimeString('ar-EG', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    new Date(this.message().sentAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
   );
 
-  readonly statusEnum = MessageStatus;
   readonly typeEnum = MessageType;
 
-  /** هل قائمة الخيارات (⋮) مفتوحة دلوقتي */
   readonly isMenuOpen = signal(false);
 
-  /** التعديل والحذف مسموحين بس لرسائلي أنا، ولو مش صورة أو محذوفة بالفعل */
   readonly canEdit = computed(
     () => this.isOwnMessage() && this.message().type === this.typeEnum.Text && !this.message().isDeleted,
   );
@@ -58,7 +50,6 @@ export class MessageBubble {
     this.closeMenu();
   }
 
-  /** بيحط الرسالة في وضع التعديل - النص هيظهر جاهز في شريط الإدخال الرئيسي تحت */
   onEditClick(): void {
     this.chatService.startEditMessage(this.message().id);
     this.closeMenu();
@@ -67,7 +58,7 @@ export class MessageBubble {
   onDeleteClick(): void {
     const confirmed = window.confirm('تحذف الرسالة دي؟ الخطوة دي مش هترجع.');
     if (confirmed) {
-      this.chatService.deleteMessage(this.message().id);
+      void this.chatService.deleteMessage(this.message().id);
     }
     this.closeMenu();
   }

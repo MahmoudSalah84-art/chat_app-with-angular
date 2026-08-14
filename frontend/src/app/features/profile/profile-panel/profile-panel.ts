@@ -1,15 +1,15 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatService } from '../../../core/services/chat';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { User } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth';
 import { UiService } from '../../../core/services/ui';
 import { Avatar } from '../../../shared/components/avatar/avatar';
 
 type EditableField = 'name' | 'about' | null;
 
-/**
- * بانل عرض وتعديل بيانات المستخدم الحالي (الاسم، النبذة، الصورة).
- * بيستبدل قائمة المحادثات مؤقتًا زي ما بيحصل في واتساب بالظبط.
- */
 @Component({
   selector: 'app-profile-panel',
   imports: [FormsModule, Avatar],
@@ -17,15 +17,16 @@ type EditableField = 'name' | 'about' | null;
   styleUrl: './profile-panel.css',
 })
 export class ProfilePanel {
-  private readonly chatService = inject(ChatService);
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly uiService = inject(UiService);
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('avatarInput');
 
-  readonly currentUser = this.chatService.currentUser;
+  readonly currentUser = this.authService.currentUser;
 
-  /** أي حقل بيتعدل دلوقتي (null يعني مفيش تعديل جاري) */
   readonly editingField = signal<EditableField>(null);
   readonly draftValue = signal('');
+  readonly isSaving = signal(false);
 
   onBack(): void {
     this.uiService.showChats();
@@ -33,18 +34,20 @@ export class ProfilePanel {
 
   startEditing(field: EditableField): void {
     if (!field) return;
+    const user = this.currentUser();
+    if (!user) return;
+
     this.editingField.set(field);
-    this.draftValue.set(field === 'name' ? this.currentUser().name : (this.currentUser().about ?? ''));
+    this.draftValue.set(field === 'name' ? user.name : (user.about ?? ''));
   }
 
-  saveEditing(): void {
+  async saveEditing(): Promise<void> {
     const field = this.editingField();
     const value = this.draftValue().trim();
-    if (field === 'name' && value) {
-      this.chatService.updateProfile({ name: value });
-    } else if (field === 'about') {
-      this.chatService.updateProfile({ about: value });
-    }
+    if (!field) return;
+
+    const payload = field === 'name' ? { name: value } : { about: value };
+    await this.updateProfile(payload);
     this.editingField.set(null);
   }
 
@@ -63,11 +66,23 @@ export class ProfilePanel {
 
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        this.chatService.updateProfile({ avatarUrl: reader.result });
-      }
+      if (typeof reader.result === 'string') void this.updateProfile({ avatarUrl: reader.result });
     };
     reader.readAsDataURL(file);
     input.value = '';
+  }
+
+  private async updateProfile(payload: { name?: string; about?: string; avatarUrl?: string }): Promise<void> {
+    this.isSaving.set(true);
+    try {
+      const updatedUser = await firstValueFrom(
+        this.http.put<User>(`${environment.apiUrl}/users/me`, payload),
+      );
+      this.authService.updateStoredUser(updatedUser);
+    } catch (error) {
+      console.error('فشل تحديث البروفايل:', error);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
 }

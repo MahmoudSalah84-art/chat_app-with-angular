@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="chatme.API/chatme.API.csproj" />
+  <Project Path="chatme.Application/chatme.Application.csproj" Id="765faf02-f9e7-4062-ac05-94afb4536e4f" />
+  <Project Path="chatme.Domain/chatme.Domain.csproj" Id="0a57257e-7c96-44b4-ad30-c1dbdeb41216" />
+  <Project Path="chatme.infrastructure/chatme.infrastructure.csproj" Id="39eb2448-4c5a-4d97-95b0-261de20eedd4" />
+</Solution>

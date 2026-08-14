@@ -6,18 +6,12 @@ import { Avatar } from '../../shared/components/avatar/avatar';
 
 type Step = 'selectMembers' | 'groupDetails';
 
-/** صورة جروب افتراضية (أيقونة رمادية بسيطة) لو المستخدم مختارش صورة */
 const DEFAULT_GROUP_AVATAR =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23A0AEC0"/><circle cx="50" cy="38" r="18" fill="white"/><path d="M20 85c0-18 13-32 30-32s30 14 30 32" fill="white"/></svg>`,
   );
 
-/**
- * بانل إنشاء مجموعة جديدة على خطوتين:
- * 1) اختيار الأعضاء من جهات الاتصال (Multi-select)
- * 2) اسم وصورة المجموعة، ثم الإنشاء الفعلي
- */
 @Component({
   selector: 'app-new-group',
   imports: [FormsModule, Avatar],
@@ -31,6 +25,7 @@ export class NewGroup {
 
   readonly contacts = this.chatService.contacts;
   readonly step = signal<Step>('selectMembers');
+  readonly isCreating = signal(false);
 
   private readonly _searchQuery = signal('');
   private readonly _selectedIds = signal<Set<string>>(new Set());
@@ -40,16 +35,18 @@ export class NewGroup {
 
   readonly filteredContacts = computed(() => {
     const query = this._searchQuery().trim().toLowerCase();
-    if (!query) return this.contacts;
-    return this.contacts.filter((c) => c.name.toLowerCase().includes(query));
+    if (!query) return this.contacts();
+    return this.contacts().filter((c) => c.name.toLowerCase().includes(query));
   });
 
   readonly selectedIds = this._selectedIds.asReadonly();
   readonly selectedCount = computed(() => this._selectedIds().size);
 
-  readonly selectedContacts = computed(() =>
-    this.contacts.filter((c) => this._selectedIds().has(c.id)),
-  );
+  readonly selectedContacts = computed(() => this.contacts().filter((c) => this._selectedIds().has(c.id)));
+
+  constructor() {
+    if (this.contacts().length === 0) void this.chatService.loadContacts();
+  }
 
   onSearchChange(value: string): void {
     this._searchQuery.set(value);
@@ -90,10 +87,18 @@ export class NewGroup {
     input.value = '';
   }
 
-  onCreateGroup(): void {
-    if (!this.groupName().trim()) return;
-    this.chatService.createGroup(this.groupName(), this.groupAvatar(), Array.from(this._selectedIds()));
-    this.uiService.showChats();
+  async onCreateGroup(): Promise<void> {
+    if (!this.groupName().trim() || this.isCreating()) return;
+
+    this.isCreating.set(true);
+    try {
+      await this.chatService.createGroup(this.groupName(), this.groupAvatar(), Array.from(this._selectedIds()));
+      this.uiService.showChats();
+    } catch (error) {
+      console.error('فشل إنشاء المجموعة:', error);
+    } finally {
+      this.isCreating.set(false);
+    }
   }
 
   onClose(): void {
