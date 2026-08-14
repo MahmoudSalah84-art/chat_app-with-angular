@@ -1,114 +1,92 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthResponse } from '../models/result.model';
+import { User } from '../models/user.model';
 
-const AUTH_TOKEN_KEY = 'whatsapp-clone-auth-token';
-const AUTH_USER_KEY = 'whatsapp-clone-auth-user';
+const TOKEN_KEY = 'whatsapp-clone-token';
+const USER_KEY = 'whatsapp-clone-user';
 
-export interface AuthUser {
-  name: string;
-  email: string;
-}
-
-export interface AuthResult {
+export interface AuthOperationResult {
   success: boolean;
   errorMessage?: string;
 }
 
 /**
- * AuthService مسؤول عن حالة تسجيل الدخول بس (هل المستخدم داخل ولا لأ، وبيانات حسابه).
- *
- * دلوقتي بيحاكي (Mock) عملية تسجيل الدخول محليًا بدون سيرفر حقيقي - بنستخدم
- * setTimeout عشان نمثّل زمن انتظار الشبكة، وبنحفظ "توكن" وهمي في localStorage
- * عشان المستخدم يفضل مسجل دخول حتى لو قفل المتصفح.
- *
- * لما نربط .NET + SignalR بعدين، هنستبدل جوه login/register بس بنداء HTTP حقيقي
- * لـ /api/auth/login اللي هيرجّع JWT حقيقي، من غير ما نغيّر أي Component بيستخدم
- * الـ Service ده.
+ * AuthService بقى حقيقي دلوقتي - بيكلم /api/auth/register و /api/auth/login
+ * فعليًا، ويحفظ الـ JWT Token اللي راجع من الـ Backend (اللي بنيناه بـ
+ * ASP.NET Core Identity) في localStorage عشان الجلسة تفضل شغالة حتى لو
+ * قفلت المتصفح.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly _isAuthenticated = signal<boolean>(this.hasStoredToken());
+  private readonly http = inject(HttpClient);
+
+  private readonly _isAuthenticated = signal<boolean>(!!this.getStoredToken());
   readonly isAuthenticated = this._isAuthenticated.asReadonly();
 
-  private readonly _authUser = signal<AuthUser | null>(this.getStoredUser());
-  readonly authUser = this._authUser.asReadonly();
+  private readonly _currentUser = signal<User | null>(this.getStoredUser());
+  readonly currentUser = this._currentUser.asReadonly();
 
-  private readonly _isLoading = signal<boolean>(false);
+  private readonly _isLoading = signal(false);
   readonly isLoading = this._isLoading.asReadonly();
 
-  /** محاكاة تسجيل الدخول - بتقبل أي إيميل صحيح الشكل + كلمة سر 6 حروف فأكتر */
-  login(email: string, password: string): Promise<AuthResult> {
-    return this.simulateNetworkCall(() => {
-      if (!this.isValidEmail(email)) {
-        return { success: false, errorMessage: 'صيغة الإيميل مش صحيحة' };
-      }
-      if (password.length < 6) {
-        return { success: false, errorMessage: 'كلمة السر لازم تكون 6 حروف على الأقل' };
-      }
-
-      // في نظام حقيقي: السيرفر هو اللي بيتأكد من كلمة السر. هنا بنمثّل نجاح الدخول بس.
-      const name = email.split('@')[0];
-      this.persistSession({ name, email });
-      return { success: true };
-    });
+  async register(name: string, email: string, password: string): Promise<AuthOperationResult> {
+    return this.performAuthRequest(() =>
+      firstValueFrom(this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, { name, email, password })),
+    );
   }
 
-  /** محاكاة إنشاء حساب جديد */
-  register(name: string, email: string, password: string): Promise<AuthResult> {
-    return this.simulateNetworkCall(() => {
-      if (!name.trim()) {
-        return { success: false, errorMessage: 'من فضلك أدخل اسمك' };
-      }
-      if (!this.isValidEmail(email)) {
-        return { success: false, errorMessage: 'صيغة الإيميل مش صحيحة' };
-      }
-      if (password.length < 6) {
-        return { success: false, errorMessage: 'كلمة السر لازم تكون 6 حروف على الأقل' };
-      }
-
-      this.persistSession({ name: name.trim(), email });
-      return { success: true };
-    });
+  async login(email: string, password: string): Promise<AuthOperationResult> {
+    return this.performAuthRequest(() =>
+      firstValueFrom(this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })),
+    );
   }
 
   logout(): void {
     this._isAuthenticated.set(false);
-    this._authUser.set(null);
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
+    this._currentUser.set(null);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }
 
-  /** بيحفظ "جلسة" المستخدم (توكن وهمي + بياناته) بعد نجاح الدخول أو التسجيل */
-  private persistSession(user: AuthUser): void {
-    const fakeToken = `mock-jwt-${Date.now()}`;
-    localStorage.setItem(AUTH_TOKEN_KEY, fakeToken);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-    this._authUser.set(user);
-    this._isAuthenticated.set(true);
+  getToken(): string | null {
+    return this.getStoredToken();
   }
 
-  /** بيلف أي عملية auth بتأخير بسيط عشان يحس المستخدم إن فيه اتصال حقيقي بيحصل */
-  private simulateNetworkCall(operation: () => AuthResult): Promise<AuthResult> {
+  /** بتحدّث بيانات المستخدم المحفوظة محليًا (بعد تعديل البروفايل مثلًا) */
+  updateStoredUser(user: User): void {
+    this._currentUser.set(user);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  private async performAuthRequest(request: () => Promise<AuthResponse>): Promise<AuthOperationResult> {
     this._isLoading.set(true);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        this._isLoading.set(false);
-        resolve(operation());
-      }, 700);
-    });
+    try {
+      const response = await request();
+      localStorage.setItem(TOKEN_KEY, response.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      this._currentUser.set(response.user);
+      this._isAuthenticated.set(true);
+      return { success: true };
+    } catch (error: any) {
+      // شكل خطأ الـ Result Pattern اللي بيرجع من الـ Api: { errors: string[] }
+      const message = error?.error?.errors?.[0] ?? 'حصل خطأ، حاول تاني';
+      return { success: false, errorMessage: message };
+    } finally {
+      this._isLoading.set(false);
+    }
   }
 
-  private isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  private getStoredToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
   }
 
-  private hasStoredToken(): boolean {
-    return !!localStorage.getItem(AUTH_TOKEN_KEY);
-  }
-
-  private getStoredUser(): AuthUser | null {
-    const raw = localStorage.getItem(AUTH_USER_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  private getStoredUser(): User | null {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
   }
 }

@@ -8,11 +8,3 @@ export enum MessageStatus {
   Read = 'read', // اتقرت (✓✓ أزرق)
   Failed = 'failed', // فشل الإرسال
 }
-
-export enum MessageType {
-  Text = 'text',
-  Image = 'image',
-  Video = 'video',
-  Audio = 'audio',
-  File = 'file',
-}

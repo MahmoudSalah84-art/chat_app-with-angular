@@ -1,7 +1,7 @@
 import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../core/services/chat';
-import { MessageType } from '../../core/enums/message-status.enum';
+import { MessageType } from '../../core/enums/message-type.enum';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { MessageBubble } from './message-bubble/message-bubble';
 
