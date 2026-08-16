@@ -81,6 +81,7 @@ namespace chatme.Domain.Entities
 			var messageResult = Message.Create(Id, senderId, type, content, replyToMessageId);
 			if (messageResult.IsFailure)
 				return messageResult;
+			
 
 			_messages.Add(messageResult.Value!);
 			RaiseDomainEvent(new MessageSentDomainEvent(Id, messageResult.Value!.Id, senderId));

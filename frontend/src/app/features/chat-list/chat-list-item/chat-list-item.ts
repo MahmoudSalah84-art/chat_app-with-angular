@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { Chat } from '../../../core/models/chat.model';
-import { ChatService } from '../../../core/services/chat';
-import { MessageType } from '../../../core/enums/message-type.enum';
+import { ChatFacade } from '../../../core/facade/chat-facade.service';
+  import { MessageType } from '../../../core/enums/message-type.enum';
 import { Avatar } from '../../../shared/components/avatar/avatar';
 
 @Component({
@@ -11,13 +11,13 @@ import { Avatar } from '../../../shared/components/avatar/avatar';
   styleUrl: './chat-list-item.css',
 })
 export class ChatListItem {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
 
   readonly chat = input.required<Chat>();
   readonly isSelected = input<boolean>(false);
   readonly selected = output<string>();
 
-  readonly isTyping = computed(() => this.chatService.typingChatId() === this.chat().id);
+  readonly isTyping = computed(() => this.chatFacade.typingChatId() === this.chat().id);
 
   readonly lastMessagePreview = computed(() => {
     const msg = this.chat().lastMessage;

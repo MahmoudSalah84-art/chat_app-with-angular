@@ -25,5 +25,6 @@ namespace chatme.infrastructure.Persistence.Repositories
 		}
 
 		public void Add(Chat chat) => dbContext.Chats.Add(chat);
+		public void AddMessage(Message message) => dbContext.Messages.Add(message);
 	}
 }

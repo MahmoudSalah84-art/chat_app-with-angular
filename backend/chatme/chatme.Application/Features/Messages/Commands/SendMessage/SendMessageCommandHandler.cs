@@ -30,6 +30,8 @@ namespace chatme.Application.Features.Messages.Commands.SendMessage
 			if (messageResult.IsFailure)
 				return messageResult.ToFailure<MessageDto>();
 
+			chatRepository.AddMessage(messageResult.Value!);
+
 			await unitOfWork.SaveChangesAsync(cancellationToken);
 
 			var message = messageResult.Value!;

@@ -10,6 +10,8 @@ namespace chatme.Application.Common.Interfaces
 	{
 		DbSet<Chat> Chats { get; }
 		IQueryable<Message> MessagesReadOnly { get; }
+		DbSet<Message> Messages { get; }
+
 
 		Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 	}

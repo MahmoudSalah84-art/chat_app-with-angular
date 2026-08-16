@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { CanActivate, CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth';
+import { AuthService } from '../services/auth.service';
 
 /**
  * Guard = "حارس" بيتشيك قبل ما يسمح للمستخدم يدخل صفحة معينة.

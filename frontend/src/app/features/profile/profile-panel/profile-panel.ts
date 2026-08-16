@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../../core/models/user.model';
-import { AuthService } from '../../../core/services/auth';
-import { UiService } from '../../../core/services/ui';
+import { AuthService } from '../../../core/services/auth.service';
+import { UiService } from '../../../core/services/ui.service';
 import { Avatar } from '../../../shared/components/avatar/avatar';
 
 type EditableField = 'name' | 'about' | null;

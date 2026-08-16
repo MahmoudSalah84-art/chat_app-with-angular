@@ -1,6 +1,6 @@
 import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatService } from '../../core/services/chat';
+import { ChatFacade } from '../../core/facade/chat-facade.service';
 import { MessageType } from '../../core/enums/message-type.enum';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { MessageBubble } from './message-bubble/message-bubble';
@@ -12,15 +12,15 @@ import { MessageBubble } from './message-bubble/message-bubble';
   styleUrl: './chat-window.css',
 })
 export class ChatWindow {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
   private readonly scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
 
-  readonly selectedChat = this.chatService.selectedChat;
-  readonly messages = this.chatService.selectedChatMessages;
-  readonly replyToMessage = this.chatService.replyToMessage;
-  readonly isOtherTyping = this.chatService.isOtherTypingInSelectedChat;
+  readonly selectedChat = this.chatFacade .selectedChat;
+  readonly messages = this.chatFacade.selectedMessages;
+  readonly replyToMessage = this.chatFacade.replyToMessage;
+  readonly isOtherTyping = this.chatFacade.isOtherTyping;
  
   readonly draftMessage = signal('');
   readonly typeEnum = MessageType;
@@ -42,7 +42,7 @@ export class ChatWindow {
   onSend(): void {
     const text = this.draftMessage().trim();
     if (!text) return;
-    this.chatService.sendMessage(text);
+    this.chatFacade.sendMessage(text);
     this.draftMessage.set('');
   }
 
@@ -56,11 +56,11 @@ export class ChatWindow {
 
   /** يستخدم في زر الرجوع اللي بيظهر بس على الموبايل */
   onBack(): void {
-    this.chatService.closeChat();
+    this.chatFacade.closeChat();
   }
  
   onCancelReply(): void {
-    this.chatService.cancelReply();
+    this.chatFacade.cancelReply();
   }
  
   /** يفتح نافذة اختيار الملف من الجهاز (بيدوس على الـ input المخفي) */
@@ -77,7 +77,7 @@ export class ChatWindow {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        this.chatService.sendImageMessage(reader.result);
+        this.chatFacade.sendImageMessage(reader.result);
       }
     };
     reader.readAsDataURL(file);

@@ -10,5 +10,6 @@ namespace chatme.Domain.Repositories
 		Task<Chat?> GetByIdWithDetailsAsync(Guid chatId, CancellationToken cancellationToken = default);
 		Task<Chat?> GetDirectChatBetweenAsync(Guid userAId, Guid userBId, CancellationToken cancellationToken = default);
 		void Add(Chat chat);
+		void AddMessage(Message message);
 	}
 }

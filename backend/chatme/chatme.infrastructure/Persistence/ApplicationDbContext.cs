@@ -19,6 +19,7 @@ namespace chatme.infrastructure.Persistence
 
 		public DbSet<Chat> Chats => Set<Chat>();
 		public IQueryable<Message> MessagesReadOnly => Set<Message>();
+		public DbSet<Message> Messages => Set<Message>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -27,7 +28,7 @@ namespace chatme.infrastructure.Persistence
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 		}
 
-		public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+		public override async Task<int> SaveChangesAsync( CancellationToken cancellationToken = default)
 		{
 			var domainEvents = ChangeTracker.Entries<AggregateRoot>()
 				.Select(e => e.Entity)
@@ -35,15 +36,35 @@ namespace chatme.infrastructure.Persistence
 				.SelectMany(e => e.DomainEvents)
 				.ToList();
 
-			var result = await base.SaveChangesAsync(cancellationToken);
+			try
+			{
+				var result = await base.SaveChangesAsync(cancellationToken);
 
-			foreach (var domainEvent in domainEvents)
-				await publisher.Publish(domainEvent, cancellationToken);
+				foreach (var domainEvent in domainEvents)
+				{
+					await publisher.Publish(domainEvent, cancellationToken);
+				}
 
-			foreach (var aggregate in ChangeTracker.Entries<AggregateRoot>().Select(e => e.Entity))
-				aggregate.ClearDomainEvents();
+				foreach (var aggregate in ChangeTracker
+					.Entries<AggregateRoot>()
+					.Select(e => e.Entity))
+				{
+					aggregate.ClearDomainEvents();
+				}
 
-			return result;
+				return result;
+			}
+			catch (DbUpdateConcurrencyException ex)
+			{
+				foreach (var entry in ex.Entries)
+				{
+					Console.WriteLine(
+						$"CONCURRENCY ENTITY = {entry.Metadata.ClrType.Name}"
+					);
+				}
+
+				throw;
+			}
 		}
 	}
 }

@@ -7,7 +7,7 @@ namespace chatme.Domain.Common
 
 	public abstract class BaseEntity
 	{
-		public Guid Id { get; protected set; } = Guid.NewGuid();
+		public Guid Id { get; protected set; }
 
 		public override bool Equals(object? obj)
 		{

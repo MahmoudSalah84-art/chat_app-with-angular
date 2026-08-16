@@ -1,8 +1,9 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { Message } from '../../../core/models/message.model';
 import { MessageType } from '../../../core/enums/message-type.enum';
-import { AuthService } from '../../../core/services/auth';
-import { ChatService } from '../../../core/services/chat';
+import { AuthService } from '../../../core/services/auth.service';
+import { ChatFacade } from '../../../core/facade/chat-facade.service';
+
 
 @Component({
   selector: 'app-message-bubble',
@@ -11,7 +12,7 @@ import { ChatService } from '../../../core/services/chat';
   styleUrl: './message-bubble.css',
 })
 export class MessageBubble {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
   private readonly authService = inject(AuthService);
 
   readonly message = input.required<Message>();
@@ -21,7 +22,7 @@ export class MessageBubble {
   readonly repliedMessage = computed(() => {
     const replyId = this.message().replyToMessageId;
     if (!replyId) return undefined;
-    return this.chatService.selectedChatMessages().find((m) => m.id === replyId);
+    return this.chatFacade.selectedMessages().find((m) => m.id === replyId);
   });
 
   readonly time = computed(() =>
@@ -46,19 +47,19 @@ export class MessageBubble {
   }
 
   onReplyClick(): void {
-    this.chatService.setReplyTo(this.message().id);
+    this.chatFacade.setReplyTo(this.message().id);
     this.closeMenu();
   }
 
   onEditClick(): void {
-    this.chatService.startEditMessage(this.message().id);
+    this.chatFacade.startEdit(this.message().id);
     this.closeMenu();
   }
 
   onDeleteClick(): void {
     const confirmed = window.confirm('تحذف الرسالة دي؟ الخطوة دي مش هترجع.');
     if (confirmed) {
-      void this.chatService.deleteMessage(this.message().id);
+      void this.chatFacade.deleteMessage(this.message().id);
     }
     this.closeMenu();
   }

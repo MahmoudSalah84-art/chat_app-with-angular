@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
-import { ChatService } from '../../core/services/chat';
-import { ThemeService } from '../../core/services/theme';
-import { UiService } from '../../core/services/ui';
+import { ThemeService } from '../../core/services/theme.service';
+import { UiService } from '../../core/services/ui.service';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { NewChat } from '../new-chat/new-chat';
 import { NewGroup } from '../new-group/new-group';
 import { ProfilePanel } from '../profile/profile-panel/profile-panel';
 import { SettingsPanel } from '../profile/settings-panel/settings-panel';
 import { ChatListItem } from './chat-list-item/chat-list-item';
+import { ChatFacade } from 'app/core/facade/chat-facade.service';
 
 @Component({
   selector: 'app-chat-list',
@@ -16,23 +16,23 @@ import { ChatListItem } from './chat-list-item/chat-list-item';
   styleUrl: './chat-list.css',
 })
 export class ChatList {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
   private readonly themeService = inject(ThemeService);
   private readonly uiService = inject(UiService);
 
-  readonly chats = this.chatService.filteredChats;
-  readonly selectedChatId = this.chatService.selectedChatId;
+  readonly chats = this.chatFacade.filteredChats;
+  readonly selectedChat = this.chatFacade.selectedChat;
   readonly isDarkMode = this.themeService.isDarkMode;
-  readonly searchQuery = this.chatService.searchQuery;
-  readonly currentUser = this.chatService.currentUser;
+  readonly searchQuery = this.chatFacade.searchQuery;
+  readonly currentUser = this.chatFacade.currentUser;
   readonly sidebarView = this.uiService.sidebarView;
 
   onSelectChat(chatId: string): void {
-    this.chatService.selectChat(chatId);
+    this.chatFacade.selectChat(chatId);
   }
 
   onSearchChange(value: string): void {
-    this.chatService.setSearchQuery(value);
+    this.chatFacade.setSearchQuery(value);
   }
 
   onToggleTheme(): void {
