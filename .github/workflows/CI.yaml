@@ -37,7 +37,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    need: backend
+    needs: backend
 
     steps:
       - name: Checkout
