@@ -26,13 +26,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore ./backend/chatme/BayTack.sln
+        run: dotnet restore ./backend/chatme/chatme.slnx
 
       - name: Build
-        run: dotnet build ./backend/chatme/BayTack.sln --no-restore
+        run: dotnet build ./backend/chatme/chatme.slnx --no-restore
 
       - name: Test
-        run: dotnet test ./backend/chatme/BayTack.sln --no-build
+        run: dotnet test ./backend/chatme/chatme.slnx --no-build
 
 
   frontend:
