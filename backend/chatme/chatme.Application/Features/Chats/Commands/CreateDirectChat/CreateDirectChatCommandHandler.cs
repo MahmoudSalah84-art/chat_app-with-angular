@@ -11,7 +11,6 @@ using System.Text;
 
 namespace chatme.Application.Features.Chats.Commands.CreateDirectChat
 {
-
 	public sealed class CreateDirectChatCommandHandler(
 		IChatRepository chatRepository,
 		IIdentityService identityService,

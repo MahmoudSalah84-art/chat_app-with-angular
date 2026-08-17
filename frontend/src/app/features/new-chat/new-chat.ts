@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ChatService } from '../../core/services/chat';
-import { UiService } from '../../core/services/ui';
+import { ChatFacade } from '../../core/facade/chat-facade.service';
+import { UiService } from '../../core/services/ui.service';
 import { Avatar } from '../../shared/components/avatar/avatar';
 
 @Component({
@@ -10,7 +10,7 @@ import { Avatar } from '../../shared/components/avatar/avatar';
   styleUrl: './new-chat.css',
 })
 export class NewChat{
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
   private readonly uiService = inject(UiService);
 
   private readonly _searchQuery = signal('');
@@ -20,13 +20,13 @@ export class NewChat{
 
   readonly filteredContacts = computed(() => {
     const query = this._searchQuery().trim().toLowerCase();
-    const contacts = this.chatService.contacts();
+    const contacts = this.chatFacade.contacts();
     if (!query) return contacts;
     return contacts.filter((contact) => contact.name.toLowerCase().includes(query));
   });
 
   constructor() {
-    this.chatService.loadContacts().finally(() => this._isLoading.set(false));
+    this.chatFacade.loadContacts().finally(() => this._isLoading.set(false));
   }
 
   onSearchChange(value: string): void {
@@ -34,7 +34,7 @@ export class NewChat{
   }
 
   async onSelectContact(userId: string): Promise<void> {
-    await this.chatService.startChatWithUser(userId);
+    await this.chatFacade.startChatWithUser(userId);
     this.uiService.showChats();
   }
 

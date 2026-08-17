@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { NewChat } from './new-chat';
 
 describe('NewChat', () => {

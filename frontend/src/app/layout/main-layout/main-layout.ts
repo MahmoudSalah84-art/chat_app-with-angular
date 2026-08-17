@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { ChatService } from '../../core/services/chat';
+import { ChatFacade } from '../../core/facade/chat-facade.service';
 import { ChatList } from '../../features/chat-list/chat-list';
 import { ChatWindow } from '../../features/chat-window/chat-window';
  
@@ -11,7 +11,7 @@ import { ChatWindow } from '../../features/chat-window/chat-window';
   styleUrl: './main-layout.css',
 })
 export class MainLayout {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
  
-  readonly hasSelectedChat = () => this.chatService.selectedChatId() !== null;
+  readonly hasSelectedChat = () => this.chatFacade.selectedChat() !== null;
 }

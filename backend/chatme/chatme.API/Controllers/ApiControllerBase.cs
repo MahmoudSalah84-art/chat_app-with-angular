@@ -27,5 +27,4 @@ namespace chatme.API.Controllers
 			};
 		}
 	}
-
 }

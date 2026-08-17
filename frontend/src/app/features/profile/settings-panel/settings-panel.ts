@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { UiService } from '../../../core/services/ui';
-import { ThemeService } from '../../../core/services/theme';
+import { UiService } from '../../../core/services/ui.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 /**
  * بانل الإعدادات العامة للتطبيق: الوضع الليلي، الإشعارات (Mock)، ومعلومات عن التطبيق.

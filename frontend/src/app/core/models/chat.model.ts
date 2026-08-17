@@ -1,5 +1,4 @@
-import { Message } from './message.model';
-import { User } from './user.model';
+import {User, Message} from '../index';
 
 /**
  * يمثل محادثة (فردية أو جماعية).

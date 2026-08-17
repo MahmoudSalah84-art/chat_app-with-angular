@@ -1,7 +1,7 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatService } from '../../core/services/chat';
-import { UiService } from '../../core/services/ui';
+import { ChatFacade } from '../../core/facade/chat-facade.service';
+import { UiService } from '../../core/services/ui.service';
 import { Avatar } from '../../shared/components/avatar/avatar';
 
 type Step = 'selectMembers' | 'groupDetails';
@@ -19,11 +19,11 @@ const DEFAULT_GROUP_AVATAR =
   styleUrl: './new-group.css',
 })
 export class NewGroup {
-  private readonly chatService = inject(ChatService);
+  private readonly chatFacade = inject(ChatFacade);
   private readonly uiService = inject(UiService);
   private readonly avatarInput = viewChild<ElementRef<HTMLInputElement>>('avatarInput');
 
-  readonly contacts = this.chatService.contacts;
+  readonly contacts = this.chatFacade.contacts;
   readonly step = signal<Step>('selectMembers');
   readonly isCreating = signal(false);
 
@@ -45,7 +45,7 @@ export class NewGroup {
   readonly selectedContacts = computed(() => this.contacts().filter((c) => this._selectedIds().has(c.id)));
 
   constructor() {
-    if (this.contacts().length === 0) void this.chatService.loadContacts();
+    if (this.contacts().length === 0) void this.chatFacade.loadContacts();
   }
 
   onSearchChange(value: string): void {
@@ -92,7 +92,7 @@ export class NewGroup {
 
     this.isCreating.set(true);
     try {
-      await this.chatService.createGroup(this.groupName(), this.groupAvatar(), Array.from(this._selectedIds()));
+      await this.chatFacade.createGroup(this.groupName(), this.groupAvatar(), Array.from(this._selectedIds()));
       this.uiService.showChats();
     } catch (error) {
       console.error('فشل إنشاء المجموعة:', error);

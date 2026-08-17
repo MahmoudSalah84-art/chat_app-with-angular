@@ -21,16 +21,32 @@ namespace chatme.API.Hubs
 	{
 		public override async Task OnConnectedAsync()
 		{
-			await mediator.Send(new SetOnlineStatusCommand(true));
-
-			var chatsResult = await mediator.Send(new GetUserChatsQuery());
-			if (chatsResult.IsSuccess)
+			try
 			{
-				foreach (var chat in chatsResult.Value!)
-					await Groups.AddToGroupAsync(Context.ConnectionId, SignalRChatNotificationService.GroupName(chat.Id));
-			}
+				Console.WriteLine($"SignalR Connected: {Context.ConnectionId}");
 
-			await base.OnConnectedAsync();
+				await mediator.Send(new SetOnlineStatusCommand(true));
+
+				var chatsResult = await mediator.Send(new GetUserChatsQuery());
+
+				if (chatsResult.IsSuccess)
+				{
+					foreach (var chat in chatsResult.Value!)
+					{
+						await Groups.AddToGroupAsync(
+							Context.ConnectionId,
+							SignalRChatNotificationService.GroupName(chat.Id));
+					}
+				}
+
+				await base.OnConnectedAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"SignalR OnConnectedAsync ERROR: {ex}");
+
+				throw;
+			}
 		}
 
 		public override async Task OnDisconnectedAsync(Exception? exception)

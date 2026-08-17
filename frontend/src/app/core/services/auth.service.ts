@@ -1,29 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { AuthResponse } from '../models/result.model';
-import { User } from '../models/user.model';
+import {User, AuthApiService, AuthOperationResult, AuthResponse} from '../index';
 
-const TOKEN_KEY = 'whatsapp-clone-token';
-const USER_KEY = 'whatsapp-clone-user';
 
-export interface AuthOperationResult {
-  success: boolean;
-  errorMessage?: string;
-}
+const TOKEN_KEY = 'chatme-token';
+const USER_KEY = 'chatme-user';
 
-/**
- * AuthService بقى حقيقي دلوقتي - بيكلم /api/auth/register و /api/auth/login
- * فعليًا، ويحفظ الـ JWT Token اللي راجع من الـ Backend (اللي بنيناه بـ
- * ASP.NET Core Identity) في localStorage عشان الجلسة تفضل شغالة حتى لو
- * قفلت المتصفح.
- */
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly authApi = inject(AuthApiService);
 
   private readonly _isAuthenticated = signal<boolean>(!!this.getStoredToken());
   readonly isAuthenticated = this._isAuthenticated.asReadonly();
@@ -34,16 +22,13 @@ export class AuthService {
   private readonly _isLoading = signal(false);
   readonly isLoading = this._isLoading.asReadonly();
 
+ 
   async register(name: string, email: string, password: string): Promise<AuthOperationResult> {
-    return this.performAuthRequest(() =>
-      firstValueFrom(this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, { name, email, password })),
-    );
+    return this.performAuthRequest(() => this.authApi.register(name, email, password));
   }
 
   async login(email: string, password: string): Promise<AuthOperationResult> {
-    return this.performAuthRequest(() =>
-      firstValueFrom(this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })),
-    );
+    return this.performAuthRequest(() => this.authApi.login(email, password));
   }
 
   logout(): void {
@@ -73,7 +58,6 @@ export class AuthService {
       this._isAuthenticated.set(true);
       return { success: true };
     } catch (error: any) {
-      // شكل خطأ الـ Result Pattern اللي بيرجع من الـ Api: { errors: string[] }
       const message = error?.error?.errors?.[0] ?? 'حصل خطأ، حاول تاني';
       return { success: false, errorMessage: message };
     } finally {
