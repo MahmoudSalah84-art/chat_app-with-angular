@@ -1,0 +1,115 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+  workflow_dispatch:
+
+jobs:
+
+  # =========================
+  # Backend Deployment
+  # =========================
+  deploy-backend:
+    name: Deploy Backend to MonsterASP
+    runs-on: windows-latest
+
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'develop'
+      )
+
+    environment: development
+
+    steps:
+
+      - name: Download Backend Artifact
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./backend-publish
+
+      - name: Download Backend Artifact Manually
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-artifact
+          path: ./backend-publish
+
+      - name: Deploy Backend to MonsterASP
+        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        with:
+          website-name: ${{ secrets.BACKEND_WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.BACKEND_SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.BACKEND_SERVER_USERNAME }}
+          server-password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
+          source-path: './backend-publish/'
+
+
+  # =========================
+  # Angular Deployment
+  # =========================
+  deploy-frontend:
+    name: Deploy Angular to MonsterASP
+    runs-on: windows-latest
+
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'develop'
+      )
+
+    environment: development
+
+    steps:
+
+      - name: Download Angular Artifact
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./frontend-dist
+
+      - name: Download Angular Artifact Manually
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-artifact
+          path: ./frontend-dist
+
+      - name: Find Angular browser folder
+        shell: pwsh
+        run: |
+          $browser = Get-ChildItem -Path "./frontend-dist" -Directory -Recurse |
+            Where-Object { $_.Name -eq "browser" } |
+            Select-Object -First 1
+
+          if (-not $browser) {
+            Write-Error "Angular browser folder was not found."
+            exit 1
+          }
+
+          Write-Host "Angular browser folder: $($browser.FullName)"
+          "ANGULAR_BROWSER_PATH=$($browser.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Deploy Angular to MonsterASP
+        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        with:
+          website-name: ${{ secrets.FRONTEND_WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.FRONTEND_SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.FRONTEND_SERVER_USERNAME }}
+          server-password: ${{ secrets.FRONTEND_SERVER_PASSWORD }}
+          source-path: '${{ env.ANGULAR_BROWSER_PATH }}'
+          target-delete: true
