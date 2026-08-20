@@ -70,7 +70,7 @@ jobs:
           name: backend-artifact
           run-id: ${{ env.CI_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: ./artifacts/backend
+          path: artifacts/backend
 
       # ======================================================
       # Check Backend Artifact
@@ -85,7 +85,7 @@ jobs:
             exit 1
           }
 
-          Get-ChildItem "./artifacts/backend" -Recurse
+          Get-ChildItem "artifacts/backend" -Recurse
 
       # ======================================================
       # Deploy Backend
@@ -97,7 +97,7 @@ jobs:
           server-computer-name: ${{ secrets.BACKEND_SERVER_COMPUTER_NAME }}
           server-username: ${{ secrets.BACKEND_SERVER_USERNAME }}
           server-password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
-          source-path: './artifacts/backend/'
+          source-path: 'artifacts/backend/'
 
 
   # ==========================================================
