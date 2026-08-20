@@ -1,19 +1,36 @@
 name: CD
 
 on:
+
+  # =========================
+  # Run automatically after CI
+  # =========================
   workflow_run:
     workflows:
       - CI
     types:
       - completed
 
+  # =========================
+  # Manual deployment
+  # =========================
   workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: 'CI Workflow Run ID containing the artifacts'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
 
 jobs:
 
-  # =========================
+  # ==========================================================
   # Backend Deployment
-  # =========================
+  # ==========================================================
   deploy-backend:
     name: Deploy Backend to MonsterASP
     runs-on: windows-latest
@@ -29,22 +46,50 @@ jobs:
 
     steps:
 
+      # ======================================================
+      # Determine CI Run ID
+      # ======================================================
+      - name: Set CI Run ID
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_run") {
+            "CI_RUN_ID=${{ github.event.workflow_run.id }}" |
+              Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+          else {
+            "CI_RUN_ID=${{ github.event.inputs.ci_run_id }}" |
+              Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+
+      # ======================================================
+      # Download Backend Artifact
+      # ======================================================
       - name: Download Backend Artifact
-        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
           name: backend-artifact
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ env.CI_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ./artifacts/backend
 
-      - name: Download Backend Artifact Manually
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-artifact
-          path: ./artifacts/backend
+      # ======================================================
+      # Check Backend Artifact
+      # ======================================================
+      - name: Check Backend Artifact
+        shell: pwsh
+        run: |
+          Write-Host "Backend artifact contents:"
 
+          if (-not (Test-Path "./artifacts/backend")) {
+            Write-Error "Backend artifact folder does not exist."
+            exit 1
+          }
+
+          Get-ChildItem "./artifacts/backend" -Recurse
+
+      # ======================================================
+      # Deploy Backend
+      # ======================================================
       - name: Deploy Backend to MonsterASP
         uses: rasmusbuchholdt/simply-web-deploy@2.1.0
         with:
@@ -55,9 +100,9 @@ jobs:
           source-path: './artifacts/backend/'
 
 
-  # =========================
+  # ==========================================================
   # Angular Deployment
-  # =========================
+  # ==========================================================
   deploy-frontend:
     name: Deploy Angular to MonsterASP
     runs-on: windows-latest
@@ -73,37 +118,50 @@ jobs:
 
     steps:
 
-      - name: Download Angular Artifact
-        if: github.event_name == 'workflow_run'
+      # ======================================================
+      # Determine CI Run ID
+      # ======================================================
+      - name: Set CI Run ID
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_run") {
+            "CI_RUN_ID=${{ github.event.workflow_run.id }}" |
+              Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+          else {
+            "CI_RUN_ID=${{ github.event.inputs.ci_run_id }}" |
+              Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+
+      # ======================================================
+      # Download Frontend Artifact
+      # ======================================================
+      - name: Download Frontend Artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-artifact
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ env.CI_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ./artifacts/frontend
 
-      - name: Download Angular Artifact Manually
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-artifact
-          path: ./artifacts/frontend
-
-      - name: Find Angular browser folder
+      # ======================================================
+      # Check Frontend Artifact
+      # ======================================================
+      - name: Check Frontend Artifact
         shell: pwsh
         run: |
-          $browser = Get-ChildItem -Path "./artifacts/frontend" -Directory -Recurse |
-            Where-Object { $_.Name -eq "browser" } |
-            Select-Object -First 1
+          Write-Host "Frontend artifact contents:"
 
-          if (-not $browser) {
-            Write-Error "Angular browser folder was not found."
+          if (-not (Test-Path "./artifacts/frontend")) {
+            Write-Error "Frontend artifact folder does not exist."
             exit 1
           }
 
-          Write-Host "Angular browser folder: $($browser.FullName)"
-          "ANGULAR_BROWSER_PATH=$($browser.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Get-ChildItem "./artifacts/frontend" -Recurse
 
+      # ======================================================
+      # Deploy Angular
+      # ======================================================
       - name: Deploy Angular to MonsterASP
         uses: rasmusbuchholdt/simply-web-deploy@2.1.0
         with:
@@ -111,5 +169,5 @@ jobs:
           server-computer-name: ${{ secrets.FRONTEND_SERVER_COMPUTER_NAME }}
           server-username: ${{ secrets.FRONTEND_SERVER_USERNAME }}
           server-password: ${{ secrets.FRONTEND_SERVER_PASSWORD }}
-          source-path: '${{ env.ANGULAR_BROWSER_PATH }}'
+          source-path: './artifacts/frontend/'
           target-delete: true
