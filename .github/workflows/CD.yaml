@@ -142,7 +142,7 @@ jobs:
           name: frontend-artifact
           run-id: ${{ env.CI_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: ./artifacts/frontend
+          path: artifacts/frontend
 
       # ======================================================
       # Check Frontend Artifact
@@ -169,5 +169,5 @@ jobs:
           server-computer-name: ${{ secrets.FRONTEND_SERVER_COMPUTER_NAME }}
           server-username: ${{ secrets.FRONTEND_SERVER_USERNAME }}
           server-password: ${{ secrets.FRONTEND_SERVER_PASSWORD }}
-          source-path: './artifacts/frontend/'
+          source-path: 'artifacts/frontend/'
           target-delete: true
