@@ -26,6 +26,10 @@ export class ChatFacade {
     this.signalR.userTyping$.subscribe(({ chatId }) => this._typingChatId.set(chatId));
     this.signalR.userStoppedTyping$.subscribe(({ chatId }) => {
       if (this._typingChatId() === chatId) this._typingChatId.set(null)});
+      
+    this.signalR.userStatusChanged$.subscribe(({ userId, isOnline, lastSeenAt }) =>
+      this.state.updateUserOnlineStatus(userId, isOnline, lastSeenAt)
+    );
   }
 
   private readonly _searchQuery = signal('');

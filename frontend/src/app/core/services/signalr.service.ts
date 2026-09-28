@@ -20,6 +20,8 @@ export class SignalRService {
   readonly chatCreated$ = new Subject<string>();
   readonly userTyping$ = new Subject<{ chatId: string; userId: string }>();
   readonly userStoppedTyping$ = new Subject<{ chatId: string; userId: string }>();
+  readonly userStatusChanged$ = new Subject<{ userId: string; isOnline: boolean; lastSeenAt?: string }>();
+
 
   async connect(): Promise<void> {
     // Already connected
@@ -92,6 +94,9 @@ export class SignalRService {
     );
     this.hubConnection?.on('UserStoppedTyping', (chatId: string, userId: string) =>
       this.userStoppedTyping$.next({ chatId, userId }),
+    );
+    this.hubConnection?.on('UserStatusChanged', (userId: string, isOnline: boolean, lastSeenAt?: string) =>
+      this.userStatusChanged$.next({ userId, isOnline, lastSeenAt }),
     );
   }
 

@@ -8,5 +8,6 @@ namespace chatme.Application.Common.Interfaces
 		Task NotifyMessageEditedAsync(Guid chatId, MessageDto message, CancellationToken cancellationToken = default);
 		Task NotifyMessageDeletedAsync(Guid chatId, Guid messageId, CancellationToken cancellationToken = default);
 		Task NotifyChatCreatedAsync(Guid chatId, IReadOnlyCollection<Guid> participantIds, CancellationToken cancellationToken = default);
+		Task NotifyUserStatusChangedAsync(Guid userId, bool isOnline, DateTime? lastSeenAt, CancellationToken cancellationToken = default);
 	}
 }

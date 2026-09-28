@@ -78,6 +78,21 @@ export class ChatStateService {
     ));
   }
 
+  updateUserOnlineStatus(userId: string, isOnline: boolean, lastSeenAt?: string) {
+    this._contacts.update(contacts =>
+      contacts.map(u => (u.id === userId ? { ...u, isOnline, lastSeenAt: lastSeenAt ?? u.lastSeenAt } : u))
+    );
+
+    this._chats.update(chats =>
+      chats.map(chat => ({
+        ...chat,
+        participants: chat.participants.map(p =>
+          p.id === userId ? { ...p, isOnline, lastSeenAt: lastSeenAt ?? p.lastSeenAt } : p
+        ),
+      }))
+    );
+  }
+
   reset() {
     this._chats.set([]);
     this._messagesByChat.set(new Map());

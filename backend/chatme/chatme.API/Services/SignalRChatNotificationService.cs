@@ -19,6 +19,9 @@ namespace chatme.API.Services
 		public Task NotifyChatCreatedAsync(Guid chatId, IReadOnlyCollection<Guid> participantIds, CancellationToken cancellationToken = default) =>
 			hubContext.Clients.Users(participantIds.Select(id => id.ToString())).SendAsync("ChatCreated", chatId, cancellationToken);
 
+		public Task NotifyUserStatusChangedAsync(Guid userId, bool isOnline, DateTime? lastSeenAt, CancellationToken cancellationToken = default) =>
+			hubContext.Clients.All.SendAsync("UserStatusChanged", userId, isOnline, lastSeenAt, cancellationToken);
+
 		public static string GroupName(Guid chatId) => $"chat-{chatId}";
 	}
 }
