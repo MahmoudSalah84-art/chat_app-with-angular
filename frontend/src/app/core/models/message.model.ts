@@ -11,4 +11,12 @@ export interface Message {
   replyToMessageId?: string | null;
   isEdited: boolean;
   isDeleted: boolean;
+   attachment?: Attachment | null;
+}
+
+export interface Attachment {
+  url: string;
+  fileName: string;
+  contentType: string;
+  sizeInBytes: number;
 }

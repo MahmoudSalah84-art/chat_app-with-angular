@@ -1,6 +1,7 @@
 ﻿using chatme.Domain.Common;
 using chatme.Domain.Enums;
 using chatme.Domain.Exceptions;
+using chatme.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +16,8 @@ namespace chatme.Domain.Entities
 		public Guid SenderId { get; private set; }
 		public MessageType Type { get; private set; }
 		public string Content { get; private set; } = string.Empty;
+
+		public Attachment? Attachment { get; private set; }
 		public DateTime SentAt { get; private set; }
 		public Guid? ReplyToMessageId { get; private set; }
 		public bool IsEdited { get; private set; }
@@ -59,6 +62,26 @@ namespace chatme.Domain.Entities
 			Content = newContent.Trim();
 			IsEdited = true;
 			return Result.Success();
+		}
+
+		internal static Result<Message> CreateWithAttachment(
+			Guid chatId, Guid senderId, MessageType type, Attachment attachment,
+			string? caption, Guid? replyToMessageId)
+		{
+			if (type == MessageType.Text)
+				return Result<Message>.Failure("نوع الرسالة مش مناسب لمرفق");
+
+			return Result<Message>.Success(new Message
+			{
+				Id = Guid.NewGuid(),
+				ChatId = chatId,
+				SenderId = senderId,
+				Type = type,
+				Content = caption?.Trim() ?? string.Empty,
+				Attachment = attachment,
+				ReplyToMessageId = replyToMessageId,
+				SentAt = DateTime.UtcNow,
+			});
 		}
 
 		internal Result SoftDelete(Guid requesterId)

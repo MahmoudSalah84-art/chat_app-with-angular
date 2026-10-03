@@ -1,6 +1,7 @@
 ﻿using chatme.Domain.Common;
 using chatme.Domain.Enums;
 using chatme.Domain.Events;
+using chatme.Domain.ValueObjects;
 
 namespace chatme.Domain.Entities
 {
@@ -142,7 +143,28 @@ namespace chatme.Domain.Entities
 				.Count(m => m.SenderId != userId);
 		}
 
+
+
+		public Result<Message> SendAttachment(
+			Guid senderId, MessageType type, Attachment attachment, string? caption, Guid? replyToMessageId)
+		{
+			if (!IsParticipant(senderId))
+				return Result<Message>.Forbidden("إنت مش عضو في المحادثة دي");
+
+			if (replyToMessageId is not null && _messages.All(m => m.Id != replyToMessageId))
+				return Result<Message>.Failure("الرسالة اللي بترد عليها مش موجودة في المحادثة دي");
+
+			var result = Message.CreateWithAttachment(Id, senderId, type, attachment, caption, replyToMessageId);
+			if (result.IsFailure)
+				return result;
+
+			_messages.Add(result.Value!);
+			RaiseDomainEvent(new MessageSentDomainEvent(Id, result.Value!.Id, senderId));
+			return result;
+		}
+
 		public bool IsParticipant(Guid userId) => _participants.Any(p => p.UserId == userId);
+
 	}
 
 }

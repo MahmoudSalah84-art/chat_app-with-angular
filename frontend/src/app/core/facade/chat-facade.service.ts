@@ -2,6 +2,9 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { ChatApiService ,ChatStateService, 
   SignalRService, AuthService, Chat, MessageType } from '../index';
 
+import { HttpEventType } from '@angular/common/http';
+import { validateAttachment } from '../utils/attachment-rules';
+
 @Injectable({ providedIn: 'root' })
 
 
@@ -17,6 +20,10 @@ export class ChatFacade {
   readonly selectedMessages = this.state.selectedMessages;
   readonly contacts = this.state.contacts;
   readonly currentUser = this.auth.currentUser;
+  
+  readonly uploadProgress = signal<number | null>(null);
+  readonly uploadError = signal<string | null>(null);
+
 
   constructor() {
     this.signalR.messageReceived$.subscribe(m => this.state.addMessage(m));
@@ -26,7 +33,7 @@ export class ChatFacade {
     this.signalR.userTyping$.subscribe(({ chatId }) => this._typingChatId.set(chatId));
     this.signalR.userStoppedTyping$.subscribe(({ chatId }) => {
       if (this._typingChatId() === chatId) this._typingChatId.set(null)});
-      
+
     this.signalR.userStatusChanged$.subscribe(({ userId, isOnline, lastSeenAt }) =>
       this.state.updateUserOnlineStatus(userId, isOnline, lastSeenAt)
     );
@@ -165,4 +172,43 @@ export class ChatFacade {
     await this.signalR.markAsRead(chatId, last.id);
     this.state.clearUnread(chatId);
   }
+
+  async sendAttachments(files: File[]) {
+    const chatId = this.state.selectedChatId();
+    if (!chatId) return;
+    this.uploadError.set(null);
+
+    for (const file of files) {
+      const error = validateAttachment(file);
+      if (error) {
+        this.uploadError.set(`${file.name}: ${error}`);
+        continue;
+      }
+
+      const replyTo = this._replyToMessageId();
+      this._replyToMessageId.set(null);
+      this.uploadProgress.set(0);
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          this.api.uploadAttachment(chatId, file, replyTo).subscribe({
+            next: (event) => {
+              if (event.type === HttpEventType.UploadProgress && event.total) {
+                this.uploadProgress.set(Math.round((100 * event.loaded) / event.total));
+              }
+            },
+            error: reject,
+            complete: resolve,
+          });
+        });
+      } catch {
+        this.uploadError.set(`فشل رفع ${file.name}`);
+      } finally {
+        this.uploadProgress.set(null);
+      }
+    }
+  }
 }
+
+
+

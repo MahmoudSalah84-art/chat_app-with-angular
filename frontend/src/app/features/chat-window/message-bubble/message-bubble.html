@@ -39,7 +39,7 @@
     }
 
     <div
-      class="max-w-[65vw] md:max-w-[400px] px-3 py-2 rounded-lg shadow-sm relative"
+      class="max-w-[75vw] md:max-w-[420px] px-3 py-2 rounded-lg shadow-sm relative"
       [class.bg-wa-teal-light]="isOwnMessage() && !message().isDeleted"
       [class.dark:bg-wa-dark-bubble]="isOwnMessage() && !message().isDeleted"
       [class.bg-white]="!isOwnMessage() && !message().isDeleted"
@@ -55,24 +55,52 @@
           </svg>
           تم حذف هذه الرسالة
         </p>
-      } @else {
+      } 
+      @else {
         @if (repliedMessage(); as replied) {
           <div class="bg-black/5 dark:bg-white/10 border-e-4 border-wa-green-light rounded ps-2 pe-2 py-1 mb-1.5 text-xs">
             <p class="text-gray-600 dark:text-gray-300 truncate">
-              {{ replied.isDeleted ? 'تم حذف هذه الرسالة' : (replied.type === typeEnum.Image ? '📷 صورة' : replied.content) }}
+              {{ replied.isDeleted ? 'تم حذف هذه الرسالة' : formatRepliedPreview(replied) }}
             </p>
           </div>
         }
-
-        @if (message().type === typeEnum.Image) {
-          <img [src]="message().content" alt="صورة مرسلة" class="rounded-md max-w-full max-h-72 object-cover mb-1" />
-        } @else {
-          <p class="text-[14.5px] text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words leading-relaxed">
-            {{ message().content }}
-          </p>
+        @switch (message().type) {
+          @case (typeEnum.Image) {
+            <a [href]="attachment()?.url ?? message().content" target="_blank" rel="noopener">
+              <img [src]="imageUrl()" alt="صورة مرسلة" loading="lazy"
+                  class="rounded-md max-w-full max-h-72 object-cover mb-1" />
+            </a>
+          }
+          @case (typeEnum.Video) {
+            <video [src]="attachment()?.url" controls preload="metadata"
+                  class="rounded-md max-w-full max-h-72 mb-1"></video>
+          }
+          @case (typeEnum.Audio) {
+            <audio [src]="attachment()?.url" controls preload="none" class="w-56 max-w-full mb-1"></audio>
+          }
+          @case (typeEnum.File) {
+            <a [href]="attachment()?.url" target="_blank" rel="noopener"
+              class="flex items-center gap-3 p-2 rounded-md bg-black/5 dark:bg-white/10 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-gray-500 shrink-0">
+                <path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 1.5L18.5 9H13V3.5z"/>
+              </svg>
+              <div class="min-w-0">
+                <p class="text-sm text-gray-900 dark:text-gray-100 truncate">{{ attachment()?.fileName }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ sizeLabel() }}</p>
+              </div>
+            </a>
+          }
+          @default {
+            <p class="text-[14.5px] text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words leading-relaxed">
+              {{ message().content }}
+            </p>
+          }    
         }
+        @if (attachment() && message().content) {
+        <p class="text-[14.5px] text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{{ message().content }}
+        </p>
       }
-
+    }
       <div class="flex items-center justify-end gap-1 mt-0.5">
         @if (message().isEdited && !message().isDeleted) {
           <span class="text-[11px] text-gray-400 dark:text-gray-500 italic">معدّلة</span>
@@ -90,3 +118,41 @@
     </div>
   </div>
 </div>
+
+<!-- Lightbox Modal for Images -->
+@if (isLightboxOpen()) {
+  <div class="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4 animate-fadeIn" (click)="closeLightbox()">
+    <div class="absolute top-4 end-4 flex items-center gap-3" (click)="$event.stopPropagation()">
+      <a
+        [href]="mediaUrl()"
+        download
+        target="_blank"
+        class="text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+        aria-label="تحميل الصورة"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </a>
+      <button
+        (click)="closeLightbox()"
+        class="text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+        aria-label="إغلاق"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <img
+      [src]="mediaUrl()"
+      alt="عرض الصورة بالحجم الكامل"
+      class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl select-none"
+      (click)="$event.stopPropagation()"
+    />
+  </div>
+}
+

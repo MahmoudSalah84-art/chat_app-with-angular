@@ -4,10 +4,12 @@ using chatme.infrastructure.Identity;
 using chatme.infrastructure.Persistence;
 using chatme.infrastructure.Persistence.Repositories;
 using chatme.infrastructure.Services;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace chatme.infrastructure
 {
@@ -25,10 +27,7 @@ namespace chatme.infrastructure
 
 			services.AddScoped<IChatRepository, ChatRepository>();
 
-			// ============================================================
-			// ASP.NET Core Identity - بيوفر UserManager, PasswordHasher,
-			// قواعد تعقيد كلمة السر، وكل بنية التخزين الآمنة تلقائيًا
-			// ============================================================
+			
 			services
 				.AddIdentityCore<ApplicationUser>(options =>
 				{
@@ -52,6 +51,19 @@ namespace chatme.infrastructure
 
 			services.AddHttpContextAccessor();
 			services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+
+			services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
+
+			services.AddSingleton(sp =>
+			{
+				var s = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+				var cloudinary = new Cloudinary(new Account(s.CloudName, s.ApiKey, s.ApiSecret));
+				cloudinary.Api.Secure = true;
+				return cloudinary;
+			});
+
+			services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
 			return services;
 		}

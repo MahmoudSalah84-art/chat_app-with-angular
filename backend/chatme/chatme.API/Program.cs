@@ -132,6 +132,8 @@ else
 
 app.UseCors(AngularClientPolicy);
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

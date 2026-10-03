@@ -158,8 +158,21 @@
     }
     <!-- Input Bar -->
     <div class="flex items-center gap-3 px-4 py-2.5 bg-wa-bg-panel dark:bg-wa-dark-panel border-t border-gray-200 dark:border-wa-dark-border">
-      <!-- input الملفات مخفي، بيتفتح بالضغط على مشبك الورق -->
-      <input #fileInput type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)" />
+      <input #fileInput type="file" [accept]="accept" multiple class="hidden" (change)="onFileSelected($event)" />
+      @if (uploadProgress() !== null) {
+        <div class="px-4 py-2 bg-wa-bg-panel dark:bg-wa-dark-panel border-t border-gray-200 dark:border-wa-dark-border">
+          <div class="h-1.5 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+            <div class="h-full bg-wa-green-light transition-all" [style.width.%]="uploadProgress()">
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">جاري الرفع... {{ uploadProgress() }}%</p>
+        </div>
+      }
+      @if (uploadError(); as err) {
+        <p class="px-4 py-1.5 text-xs text-red-500 bg-wa-bg-panel dark:bg-wa-dark-panel">
+          {{ err }}
+        </p>
+      }
       <button
         (click)="onAttachClick()"
         class="text-wa-gray-icon dark:text-gray-300 cursor-pointer shrink-0 hover:text-gray-700 dark:hover:text-gray-100 transition-colors"
@@ -177,7 +190,7 @@
         [placeholder]="editingMessage() ? 'تعديل الرسالة...' : 'اكتب رسالة'"
         class="flex-1 bg-white dark:bg-wa-dark-bg rounded-full px-4 py-2.5 outline-none text-sm text-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500"
       />
-      <!-- زر الإرسال أو حفظ التعديل -->
+      <!-- for sending messages -->
       <button
         (click)="onSend()"
         class="shrink-0 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"

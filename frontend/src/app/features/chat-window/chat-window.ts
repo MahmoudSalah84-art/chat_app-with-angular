@@ -4,6 +4,7 @@ import { ChatFacade } from '../../core/facade/chat-facade.service';
 import { MessageType } from '../../core/enums/message-type.enum';
 import { Avatar } from '../../shared/components/avatar/avatar';
 import { MessageBubble } from './message-bubble/message-bubble';
+import { ATTACHMENT_ACCEPT } from '../../core/utils/attachment-rules';
 
  
 @Component({
@@ -27,6 +28,10 @@ export class ChatWindow implements OnDestroy {
   readonly isOtherTyping = this.chatFacade.isOtherTyping;
   readonly draftMessage = signal('');
   readonly typeEnum = MessageType;
+  readonly accept = ATTACHMENT_ACCEPT;
+  readonly uploadProgress = this.chatFacade.uploadProgress;
+  readonly uploadError = this.chatFacade.uploadError;
+
 
 
   // search inside chat
@@ -185,26 +190,16 @@ export class ChatWindow implements OnDestroy {
       return 'غير متصل';
     }
   }
+
   onAttachClick(): void {
     this.fileInput()?.nativeElement.click();
   }
 
-
-
-   onFileSelected(event: Event): void {
+  onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        void this.chatFacade.sendImageMessage(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-    input.value = '';
+    const files = Array.from(input.files ?? []);
+    input.value = ''; 
+    if (files.length) void this.chatFacade.sendAttachments(files);
   }
 }
-
-
 
