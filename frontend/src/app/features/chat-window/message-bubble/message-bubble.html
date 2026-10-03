@@ -66,10 +66,9 @@
         }
         @switch (message().type) {
           @case (typeEnum.Image) {
-            <a [href]="attachment()?.url ?? message().content" target="_blank" rel="noopener">
-              <img [src]="imageUrl()" alt="صورة مرسلة" loading="lazy"
-                  class="rounded-md max-w-full max-h-72 object-cover mb-1" />
-            </a>
+            <img [src]="imageUrl()" alt="صورة مرسلة"  loading="lazy" (click)="openLightbox()"
+              class="rounded-md max-w-full max-h-72 object-cover mb-1 cursor-pointer"
+            />
           }
           @case (typeEnum.Video) {
             <video [src]="attachment()?.url" controls preload="metadata"

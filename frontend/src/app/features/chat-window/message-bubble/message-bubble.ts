@@ -42,7 +42,7 @@ export class MessageBubble {
     () => this.isOwnMessage() && this.message().type === this.typeEnum.Text && !this.message().isDeleted,
   );
   readonly canDelete = computed(() => this.isOwnMessage() && !this.message().isDeleted);
-  readonly mediaUrl = computed(() => this.resolveMediaUrl(this.message().content));
+  readonly mediaUrl = computed(() => this.resolveMediaUrl(this.message().attachment?.url ?? this.message().content));
   readonly documentData = computed(() => {
     if (this.message().type !== this.typeEnum.File) return null;
     try {
