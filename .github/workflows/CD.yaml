@@ -125,7 +125,6 @@ jobs:
         with:
           website-name: ${{ secrets.BACKEND_WEBSITE_NAME }}
           server-computer-name: https://${{ secrets.SERVER_COMPUTER_NAME }}/msdeploy.axd
-          server-computer-name: ${{ secrets.BACKEND_SERVER_COMPUTER_NAME }}
           server-username: ${{ secrets.BACKEND_SERVER_USERNAME }}
           server-password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
           source-path: 'artifacts/backend/'
