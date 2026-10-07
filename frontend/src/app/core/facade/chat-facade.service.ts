@@ -27,6 +27,7 @@ export class ChatFacade {
 
 
   constructor() {
+    this.api.loadChats().then(chats => this.state.setChats(chats));
     this.signalR.messageReceived$.subscribe((m) => {
       this.state.addMessage(m);
       this.acknowledgeIncoming(m);
