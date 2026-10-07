@@ -19,6 +19,13 @@ export class ChatListItem {
 
   readonly isTyping = computed(() => this.chatFacade.typingChatId() === this.chat().id);
 
+  readonly otherParticipant = computed(() => {
+   const currentUserId = this.chatFacade.currentUser()?.id;
+   return this.chat().participants.find(p => p.id !== currentUserId) ?? this.chat().participants[0];
+  });
+
+  readonly isOtherOnline = computed(() => this.otherParticipant()?.isOnline ?? false);
+
   readonly lastMessagePreview = computed(() => {
     const msg = this.chat().lastMessage;
     if (msg?.type === MessageType.Image) return '📷 صورة';

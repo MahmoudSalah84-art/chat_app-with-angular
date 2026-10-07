@@ -1,5 +1,6 @@
 ﻿using chatme.Application.Common.DTO;
 using chatme.Application.Common.Interfaces;
+using chatme.Application.Common.Mappings;
 using chatme.Domain.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace chatme.Application.Features.Messages.EventHandlers
 		{
 			var message = await dbContext.MessagesReadOnly
 				.Where(m => m.Id == notification.MessageId)
-				.Select(m => new MessageDto(m.Id, m.ChatId, m.SenderId, m.Type, m.Content, m.SentAt, m.ReplyToMessageId, m.IsEdited, m.IsDeleted))
+				.Select(m => MessageProjections.Map(m))
 				.FirstOrDefaultAsync(cancellationToken);
 
 			if (message is not null)

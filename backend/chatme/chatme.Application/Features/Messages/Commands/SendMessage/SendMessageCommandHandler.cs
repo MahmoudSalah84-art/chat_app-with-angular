@@ -1,6 +1,7 @@
 ﻿using chatme.Application.Common;
 using chatme.Application.Common.DTO;
 using chatme.Application.Common.Interfaces;
+using chatme.Application.Common.Mappings;
 using chatme.Domain.Common;
 using chatme.Domain.Repositories;
 using MediatR;
@@ -35,9 +36,7 @@ namespace chatme.Application.Features.Messages.Commands.SendMessage
 			await unitOfWork.SaveChangesAsync(cancellationToken);
 
 			var message = messageResult.Value!;
-			return Result<MessageDto>.Success(new MessageDto(
-				message.Id, message.ChatId, message.SenderId, message.Type, message.Content,
-				message.SentAt, message.ReplyToMessageId, message.IsEdited, message.IsDeleted));
+			return Result<MessageDto>.Success(MessageProjections.Map(message));
 		}
 	}
 }

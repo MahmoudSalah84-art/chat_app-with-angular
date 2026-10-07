@@ -1,13 +1,12 @@
-﻿using chatme.Application.Common;
-using chatme.Application.Common.DTO;
+﻿using chatme.Application.Common.DTO;
 using chatme.Application.Common.Interfaces;
+using chatme.Application.Common.Mappings;
 using chatme.Domain.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace chatme.Application.Features.Chats.Queries.GetChatMessages
 {
-
 	public sealed class GetChatMessagesQueryHandler(
 		IApplicationDbContext dbContext,
 		ICurrentUserService currentUserService) : IRequestHandler<GetChatMessagesQuery, Result<List<MessageDto>>>
@@ -29,7 +28,7 @@ namespace chatme.Application.Features.Chats.Queries.GetChatMessages
 			var messages = await dbContext.MessagesReadOnly
 				.Where(m => m.ChatId == request.ChatId)
 				.OrderBy(m => m.SentAt)
-				.Select(m => new MessageDto(m.Id, m.ChatId, m.SenderId, m.Type, m.Content, m.SentAt, m.ReplyToMessageId, m.IsEdited, m.IsDeleted))
+				.Select(m => MessageProjections.Map(m))
 				.ToListAsync(cancellationToken);
 
 			return Result<List<MessageDto>>.Success(messages);

@@ -5,6 +5,8 @@ using chatme.Application.Features.Chats.Commands.MarkChatAsRead;
 using chatme.Application.Features.Chats.Queries.GetUserChats;
 using chatme.Application.Features.Messages.Commands.DeleteMessage;
 using chatme.Application.Features.Messages.Commands.EditMessage;
+using chatme.Application.Features.Messages.Commands.MarkAllMessagesDelivered;
+using chatme.Application.Features.Messages.Commands.MarkMessagesDelivered;
 using chatme.Application.Features.Messages.Commands.SendMessage;
 using chatme.Application.Features.Users.Commands.SetOnlineStatus;
 using chatme.Domain.Common;
@@ -37,6 +39,7 @@ namespace chatme.API.Hubs
 							Context.ConnectionId,
 							SignalRChatNotificationService.GroupName(chat.Id));
 					}
+					await mediator.Send(new MarkAllMessagesDeliveredCommand());
 				}
 
 				await base.OnConnectedAsync();
@@ -76,9 +79,10 @@ namespace chatme.API.Hubs
 		public Task JoinChatGroup(Guid chatId) =>
 			Groups.AddToGroupAsync(Context.ConnectionId, SignalRChatNotificationService.GroupName(chatId));
 
-		
+		public async Task MarkAsDelivered(Guid chatId, Guid upToMessageId) =>
+			Unwrap(await mediator.Send(new MarkMessagesDeliveredCommand(chatId, upToMessageId)));
 
-		private static T Unwrap<T>(Result<T> result)
+	private static T Unwrap<T>(Result<T> result)
 		{
 			if (result.IsFailure)
 				throw new HubException(string.Join(" - ", result.Errors));

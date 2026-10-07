@@ -10,7 +10,7 @@
     [src]="chat().avatarUrl"
     [size]="50"
     [showOnlineDot]="!chat().isGroup"
-    [isOnline]="chat().participants[1]?.isOnline ?? false"
+    [isOnline]="isOtherOnline()"
   />
 
   <div class="flex-1 min-w-0">

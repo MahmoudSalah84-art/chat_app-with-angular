@@ -20,6 +20,10 @@ export class SignalRService {
   readonly chatCreated$ = new Subject<string>();
   readonly userTyping$ = new Subject<{ chatId: string; userId: string }>();
   readonly userStoppedTyping$ = new Subject<{ chatId: string; userId: string }>();
+  readonly userStatusChanged$ = new Subject<{ userId: string; isOnline: boolean; lastSeenAt?: string }>();
+  readonly messagesDelivered$ = new Subject<{ chatId: string; userId: string; upTo: string }>();
+  readonly messagesRead$ = new Subject<{ chatId: string; userId: string; upTo: string }>();
+
 
   async connect(): Promise<void> {
     // Already connected
@@ -58,22 +62,23 @@ export class SignalRService {
       this.hubConnection.onclose(error => {
         console.log('SignalR closed:', error);
       }
-    ); 
-  }
+    );}
 
-  this.connectingPromise = this.hubConnection.start();
+    this.connectingPromise = this.hubConnection.start();
 
-  try {
-    await this.connectingPromise;
-    console.log('SignalR connected');
-  } catch (error) {
-    this.hubConnection = null;
-    console.error('SignalR connection failed:', error);
-    throw error;
-  } finally {
-    this.connectingPromise = null;
+    try {
+      await this.connectingPromise;
+      console.log('SignalR connected');
+    }
+    catch (error) {
+      this.hubConnection = null;
+      console.error('SignalR connection failed:', error);
+      throw error;
+    }
+    finally {
+      this.connectingPromise = null;
+    }
   }
-}
 
   async disconnect(): Promise<void> {
     await this.hubConnection?.stop();
@@ -93,6 +98,14 @@ export class SignalRService {
     this.hubConnection?.on('UserStoppedTyping', (chatId: string, userId: string) =>
       this.userStoppedTyping$.next({ chatId, userId }),
     );
+    this.hubConnection?.on('UserStatusChanged', (userId: string, isOnline: boolean, lastSeenAt?: string) =>
+      this.userStatusChanged$.next({ userId, isOnline, lastSeenAt }),
+    );
+
+    this.hubConnection?.on('MessagesDelivered', (chatId: string, userId: string, upTo: string) =>
+    this.messagesDelivered$.next({ chatId, userId, upTo }));
+    this.hubConnection?.on('MessagesRead', (chatId: string, userId: string, upTo: string) =>
+    this.messagesRead$.next({ chatId, userId, upTo }));
   }
 
   sendMessage(chatId: string, type: MessageType, content: string, replyToMessageId: string | null): Promise<Message> {
@@ -121,6 +134,11 @@ export class SignalRService {
 
   joinChatGroup(chatId: string): Promise<void> {
     return this.invoke<void>('JoinChatGroup', chatId);
+  }
+
+
+  markAsDelivered(chatId: string, upToMessageId: string): Promise<void> {
+  return this.invoke<void>('MarkAsDelivered', chatId, upToMessageId);
   }
 
   private async invoke<T>( methodName: string, ...args: unknown[]): Promise<T> {

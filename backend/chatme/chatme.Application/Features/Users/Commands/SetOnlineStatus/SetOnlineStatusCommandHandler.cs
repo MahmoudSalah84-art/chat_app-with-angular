@@ -10,18 +10,24 @@ namespace chatme.Application.Features.Users.Commands.SetOnlineStatus
 {
 	public sealed class SetOnlineStatusCommandHandler(
 		IIdentityService identityService,
-		ICurrentUserService currentUserService) : IRequestHandler<SetOnlineStatusCommand, Result>
+		ICurrentUserService currentUserService,
+		IChatNotificationService chatNotificationService) : IRequestHandler<SetOnlineStatusCommand, Result>
 	{
-		public Task<Result> Handle(SetOnlineStatusCommand request, CancellationToken cancellationToken)
+		public async Task<Result> Handle(SetOnlineStatusCommand request, CancellationToken cancellationToken)
 		{
 			var userId = currentUserService.UserId;
-			// مش بنرجّع Failure هنا عمدًا: لو حصلت مشكلة بسيطة في قراءة هوية
-			// المستخدم وقت قفل اتصال SignalR، مفيش داعي نوقف أي حاجة أو نظهر
-			// خطأ للمستخدم - العملية دي مجرد تحديث حالة "متصل الآن" مش حرجة
-			if (userId is null)
-				return Task.FromResult(Result.Success());
 
-			return identityService.SetOnlineStatusAsync(userId.Value, request.IsOnline, cancellationToken);
+			if (userId is null)
+				return Result.Success();
+
+			var result = await identityService.SetOnlineStatusAsync(userId.Value, request.IsOnline, cancellationToken);
+			if (result.IsSuccess)
+			{
+				var lastSeen = request.IsOnline ? (DateTime?)null : DateTime.UtcNow;
+				await chatNotificationService.NotifyUserStatusChangedAsync(userId.Value, request.IsOnline, lastSeen, cancellationToken);
+			}
+
+			return result;
 		}
 	}
 

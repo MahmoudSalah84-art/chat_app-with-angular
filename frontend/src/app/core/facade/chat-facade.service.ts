@@ -1,6 +1,10 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { ChatApiService ,ChatStateService, 
-  SignalRService, AuthService, Chat, MessageType } from '../index';
+  SignalRService, AuthService, Chat, MessageType, 
+  Message} from '../index';
+
+import { HttpEventType } from '@angular/common/http';
+import { validateAttachment } from '../utils/attachment-rules';
 
 @Injectable({ providedIn: 'root' })
 
@@ -17,15 +21,35 @@ export class ChatFacade {
   readonly selectedMessages = this.state.selectedMessages;
   readonly contacts = this.state.contacts;
   readonly currentUser = this.auth.currentUser;
+  
+  readonly uploadProgress = signal<number | null>(null);
+  readonly uploadError = signal<string | null>(null);
+
 
   constructor() {
-    this.signalR.messageReceived$.subscribe(m => this.state.addMessage(m));
+    this.api.loadChats().then(chats => this.state.setChats(chats));
+    this.signalR.messageReceived$.subscribe((m) => {
+      this.state.addMessage(m);
+      this.acknowledgeIncoming(m);
+    });
     this.signalR.messageEdited$.subscribe(m => this.state.updateMessage(m));
     this.signalR.messageDeleted$.subscribe(({ chatId, messageId }) => this.state.softDeleteMessage(chatId, messageId));
     this.signalR.chatCreated$.subscribe(() => this.loadChats());
     this.signalR.userTyping$.subscribe(({ chatId }) => this._typingChatId.set(chatId));
     this.signalR.userStoppedTyping$.subscribe(({ chatId }) => {
       if (this._typingChatId() === chatId) this._typingChatId.set(null)});
+
+    this.signalR.userStatusChanged$.subscribe(({ userId, isOnline, lastSeenAt }) =>
+      this.state.updateUserOnlineStatus(userId, isOnline, lastSeenAt)
+    );
+
+    this.signalR.messagesDelivered$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'delivered', e.upTo));
+    this.signalR.messagesRead$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'read', e.upTo));
+
+    document.addEventListener('visibilitychange', () => {
+      const id = this.state.selectedChatId();
+      if (document.visibilityState === 'visible' && id) void this.markAsRead(id);
+    });
   }
 
   private readonly _searchQuery = signal('');
@@ -160,5 +184,53 @@ export class ChatFacade {
     if (!last) return;
     await this.signalR.markAsRead(chatId, last.id);
     this.state.clearUnread(chatId);
+  }
+
+  async sendAttachments(files: File[]) {
+    const chatId = this.state.selectedChatId();
+    if (!chatId) return;
+    this.uploadError.set(null);
+
+    for (const file of files) {
+      const error = validateAttachment(file);
+      if (error) {
+        this.uploadError.set(`${file.name}: ${error}`);
+        continue;
+      }
+
+      const replyTo = this._replyToMessageId();
+      this._replyToMessageId.set(null);
+      this.uploadProgress.set(0);
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          this.api.uploadAttachment(chatId, file, replyTo).subscribe({
+            next: (event) => {
+              if (event.type === HttpEventType.UploadProgress && event.total) {
+                this.uploadProgress.set(Math.round((100 * event.loaded) / event.total));
+              }
+            },
+            error: reject,
+            complete: resolve,
+          });
+        });
+      } catch {
+        this.uploadError.set(`فشل رفع ${file.name}`);
+      } finally {
+        this.uploadProgress.set(null);
+      }
+    }
+  }
+
+
+  private acknowledgeIncoming(m: Message) {
+    const me = this.auth.currentUser()?.id;
+    if (!me || m.senderId === me) return;
+
+    const isOpenAndVisible =
+      this.state.selectedChatId() === m.chatId && document.visibilityState === 'visible';
+
+    if (isOpenAndVisible) void this.markAsRead(m.chatId);
+    else void this.signalR.markAsDelivered(m.chatId, m.id);
   }
 }
