@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import {Chat, Message, User} from '../index';
-
+import { toUtcMs } from '../utils/date';
 
 @Injectable({ 
   providedIn: 'root' 
@@ -98,5 +98,27 @@ export class ChatStateService {
     this._messagesByChat.set(new Map());
     this._selectedChatId.set(null);
     this._contacts.set([]);
+  }
+
+  applyReceipt(chatId: string, userId: string, kind: 'delivered' | 'read', upTo: string) {
+    const upToMs = toUtcMs(upTo);
+
+    this._chats.update((list) =>
+      list.map((c) => {
+        if (c.id !== chatId) return c;
+
+        const receipts = [...(c.receipts ?? [])];
+        const i = receipts.findIndex((r) => r.userId === userId); // for this user in this chat (return -1 if not found)
+        const next = { ...(i >= 0 ? receipts[i] : { userId, lastDeliveredAt: null, lastReadAt: null }) };
+
+        if (kind === 'read' && upToMs > toUtcMs(next.lastReadAt)) next.lastReadAt = upTo;
+        // for two cases
+        if (upToMs > toUtcMs(next.lastDeliveredAt)) next.lastDeliveredAt = upTo;
+
+        if (i >= 0) receipts[i] = next;
+        else receipts.push(next);
+        return { ...c, receipts };
+      }),
+    );
   }
 }

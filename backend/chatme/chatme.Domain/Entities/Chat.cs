@@ -124,8 +124,45 @@ namespace chatme.Domain.Entities
 			if (participant is null)
 				return Result.Forbidden("إنت مش عضو في المحادثة دي");
 
-			participant.MarkAsRead(lastReadMessageId);
+			var message = _messages.FirstOrDefault(m => m.Id == lastReadMessageId);
+			if (message is null)
+				return Result.NotFound("الرسالة دي مش موجودة");
+
+			if (participant.AdvanceRead(lastReadMessageId, message.SentAt))
+				RaiseDomainEvent(new MessagesReadDomainEvent(Id, userId, message.SentAt));
+
 			return Result.Success();
+		}
+
+		public Result MarkAsDelivered(Guid userId, Guid upToMessageId)
+		{
+			var participant = _participants.FirstOrDefault(p => p.UserId == userId);
+			if (participant is null)
+				return Result.Forbidden("إنت مش عضو في المحادثة دي");
+
+			var message = _messages.FirstOrDefault(m => m.Id == upToMessageId);
+			if (message is null)
+				return Result.NotFound("الرسالة دي مش موجودة");
+
+			if (participant.AdvanceDelivered(message.SentAt))
+				RaiseDomainEvent(new MessagesDeliveredDomainEvent(Id, userId, message.SentAt));
+
+			return Result.Success();
+		}
+
+		public void MarkAllAsDelivered(Guid userId)
+		{
+			var participant = _participants.FirstOrDefault(p => p.UserId == userId);
+			if (participant is null) return;
+
+			var latest = _messages
+				.Where(m => m.SenderId != userId) // all messages sent by others
+				.Select(m => (DateTime?)m.SentAt)
+				.Max();
+			if (latest is null) return;
+
+			if (participant.AdvanceDelivered(latest.Value))
+				RaiseDomainEvent(new MessagesDeliveredDomainEvent(Id, userId, latest.Value));
 		}
 
 		public int GetUnreadCount(Guid userId)
