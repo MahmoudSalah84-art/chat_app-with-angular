@@ -124,6 +124,7 @@ jobs:
         uses: rasmusbuchholdt/simply-web-deploy@2.1.0
         with:
           website-name: ${{ secrets.BACKEND_WEBSITE_NAME }}
+          server-computer-name: https://${{ secrets.SERVER_COMPUTER_NAME }}/msdeploy.axd
           server-computer-name: ${{ secrets.BACKEND_SERVER_COMPUTER_NAME }}
           server-username: ${{ secrets.BACKEND_SERVER_USERNAME }}
           server-password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
