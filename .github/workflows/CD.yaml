@@ -144,7 +144,7 @@ jobs:
         github.event.workflow_run.head_branch == 'master'
       )
 
-    environment: development
+    environment: production
 
     steps:
 
