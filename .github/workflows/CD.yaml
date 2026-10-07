@@ -87,6 +87,36 @@ jobs:
 
           Get-ChildItem "artifacts/backend" -Recurse
 
+
+      # ======================================================
+      # Create Production Settings
+      # ======================================================
+      - name: Create Production Settings
+        shell: pwsh
+        run: |
+          $config = @{
+            Jwt = @{
+              Key = "${{ secrets.JWT_KEY }}"
+              Issuer = "WhatsAppClone.Api"
+              Audience = "WhatsAppClone.Client"
+              ExpiryMinutes = 10080
+            }
+            Cloudinary = @{
+              CloudName = "${{ secrets.CLOUDINARY_CLOUD_NAME }}"
+              ApiKey = "${{ secrets.CLOUDINARY_API_KEY }}"
+              ApiSecret = "${{ secrets.CLOUDINARY_API_SECRET }}"
+            }
+          } | ConvertTo-Json -Depth 10
+
+          $config | Out-File "artifacts/backend/appsettings.Production.json" -Encoding utf8
+
+
+      # ======================================================  
+      - name: Check Production Settings
+        shell: pwsh
+        run: |
+          Get-Content "artifacts/backend/appsettings.Production.json"
+
       # ======================================================
       # Deploy Backend
       # ======================================================
