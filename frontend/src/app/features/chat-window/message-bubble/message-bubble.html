@@ -106,10 +106,19 @@
         }
         <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ time() }}</span>
 
-        @if (isOwnMessage() && !message().isDeleted) {
-          <span class="text-gray-400">
-            <svg width="16" height="16" viewBox="0 0 16 15" fill="currentColor">
-              <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512z"/>
+        @if (isOwnMessage() && !message().isDeleted) { 
+         <span
+            class="shrink-0 transition-colors"
+            [class.text-gray-400]="status() !== statusEnum.Read"
+            [class.text-[#53bdeb]]="status() === statusEnum.Read"
+            [attr.aria-label]="status() === statusEnum.Read ? 'اتقرت' : status() === statusEnum.Delivered ? 'وصلت' : 'اتبعتت'"
+          >
+            <svg width="17" height="16" viewBox="0 0 17 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 8.5l3.5 3.5L11 4.5" /> <!-- This is the first checkmark -->
+              @if (status() !== statusEnum.Sent) {
+                <path d="M5.5 8.5L9 12l6.5-7.5" />
+              }
             </svg>
           </span>
         }

@@ -5,6 +5,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ChatFacade } from '../../../core/facade/chat-facade.service';
 import { environment } from '../../../../environments/environment';
 import { formatBytes } from '../../../core/utils/attachment-rules';
+import { getMessageStatus } from '../../../core/utils/message-status';
+import { MessageStatus } from '../../../core/enums/message-status.enum';
 
 
 @Component({
@@ -60,6 +62,11 @@ export class MessageBubble {
       };
     }
   });
+
+  readonly statusEnum = MessageStatus;
+  readonly status = computed(() =>
+    getMessageStatus(this.message(), this.chatFacade.selectedChat(), this.authService.currentUser()?.id ?? ''),
+  );
 
   toggleMenu(): void {
     this.isMenuOpen.update((v) => !v);

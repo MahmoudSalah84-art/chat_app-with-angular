@@ -38,7 +38,7 @@ namespace chatme.Application.Features.Chats.Commands.CreateGroupChat
 			var allParticipantIds = request.MemberIds.Append(userId.Value).Distinct().ToList();
 			var participants = await identityService.GetUsersByIdsAsync(allParticipantIds, cancellationToken);
 
-			return Result<ChatDto>.Success(new ChatDto(chat.Id, true, chat.Name!, chat.AvatarUrl, participants, null, 0));
+			return Result<ChatDto>.Success(new ChatDto(chat.Id, true, chat.Name!, chat.AvatarUrl, participants, null, 0, []));
 		}
 	}
 }

@@ -2,7 +2,6 @@
 using chatme.Application.Common.Interfaces;
 using chatme.Application.Common.Mappings;
 using chatme.Domain.Common;
-using chatme.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +29,6 @@ namespace chatme.Application.Features.Chats.Queries.GetUserChats
 				.Distinct()
 				.ToList();
 
-			// بدل ما نستعلم على جدول Users مباشرة، بنسأل IIdentityService -
-			// هو اللي عارف فين وإزاي بيانات المستخدمين متخزنة فعليًا (Identity)
 			var users = await identityService.GetUsersByIdsAsync(allParticipantIds, cancellationToken);
 			var usersById = users.ToDictionary(u => u.Id);
 
@@ -45,6 +42,10 @@ namespace chatme.Application.Features.Chats.Queries.GetUserChats
 				var otherParticipant = participantDtos.FirstOrDefault(p => p.Id != userId);
 				var lastMessage = chat.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
 
+				var receipts = chat.Participants
+					.Select(p => new ParticipantReceiptDto(p.UserId, p.LastDeliveredAt, p.LastReadAt))
+					.ToList();
+
 				return new ChatDto(
 					chat.Id,
 					chat.IsGroup,
@@ -52,7 +53,8 @@ namespace chatme.Application.Features.Chats.Queries.GetUserChats
 					chat.IsGroup ? chat.AvatarUrl : (otherParticipant?.AvatarUrl ?? string.Empty),
 					participantDtos,
 					lastMessage is null ? null : MessageProjections.Map(lastMessage),
-					chat.GetUnreadCount(userId.Value));
+					chat.GetUnreadCount(userId.Value),
+					receipts);
 			})
 			.OrderByDescending(c => c.LastMessage?.SentAt ?? DateTime.MinValue)
 			.ToList();

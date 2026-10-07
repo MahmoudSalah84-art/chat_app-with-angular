@@ -10,4 +10,10 @@ export interface Chat {
   unreadCount: number; 
   isPinned?: boolean;
   isMuted?: boolean;
+  receipts: ParticipantReceipt[];
+}
+export interface ParticipantReceipt {
+  userId: string;
+  lastDeliveredAt?: string | null;
+  lastReadAt?: string | null;
 }

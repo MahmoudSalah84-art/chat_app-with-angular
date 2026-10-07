@@ -22,6 +22,15 @@ namespace chatme.API.Services
 		public Task NotifyUserStatusChangedAsync(Guid userId, bool isOnline, DateTime? lastSeenAt, CancellationToken cancellationToken = default) =>
 			hubContext.Clients.All.SendAsync("UserStatusChanged", userId, isOnline, lastSeenAt, cancellationToken);
 
+
+		public Task NotifyMessagesDeliveredAsync(Guid chatId, Guid userId, DateTime upToSentAt, CancellationToken cancellationToken = default) =>
+			hubContext.Clients.Group(GroupName(chatId))
+				.SendAsync("MessagesDelivered", chatId, userId, DateTime.SpecifyKind(upToSentAt, DateTimeKind.Utc), cancellationToken);
+
+		public Task NotifyMessagesReadAsync(Guid chatId, Guid userId, DateTime upToSentAt, CancellationToken cancellationToken = default) =>
+			hubContext.Clients.Group(GroupName(chatId))
+				.SendAsync("MessagesRead", chatId, userId, DateTime.SpecifyKind(upToSentAt, DateTimeKind.Utc), cancellationToken);
+
 		public static string GroupName(Guid chatId) => $"chat-{chatId}";
 	}
 }

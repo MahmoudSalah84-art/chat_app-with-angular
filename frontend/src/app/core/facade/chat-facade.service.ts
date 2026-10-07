@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { ChatApiService ,ChatStateService, 
-  SignalRService, AuthService, Chat, MessageType } from '../index';
+  SignalRService, AuthService, Chat, MessageType, 
+  Message} from '../index';
 
 import { HttpEventType } from '@angular/common/http';
 import { validateAttachment } from '../utils/attachment-rules';
@@ -26,7 +27,11 @@ export class ChatFacade {
 
 
   constructor() {
-    this.signalR.messageReceived$.subscribe(m => this.state.addMessage(m));
+    this.api.loadChats().then(chats => this.state.setChats(chats));
+    this.signalR.messageReceived$.subscribe((m) => {
+      this.state.addMessage(m);
+      this.acknowledgeIncoming(m);
+    });
     this.signalR.messageEdited$.subscribe(m => this.state.updateMessage(m));
     this.signalR.messageDeleted$.subscribe(({ chatId, messageId }) => this.state.softDeleteMessage(chatId, messageId));
     this.signalR.chatCreated$.subscribe(() => this.loadChats());
@@ -37,6 +42,14 @@ export class ChatFacade {
     this.signalR.userStatusChanged$.subscribe(({ userId, isOnline, lastSeenAt }) =>
       this.state.updateUserOnlineStatus(userId, isOnline, lastSeenAt)
     );
+
+    this.signalR.messagesDelivered$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'delivered', e.upTo));
+    this.signalR.messagesRead$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'read', e.upTo));
+
+    document.addEventListener('visibilitychange', () => {
+      const id = this.state.selectedChatId();
+      if (document.visibilityState === 'visible' && id) void this.markAsRead(id);
+    });
   }
 
   private readonly _searchQuery = signal('');
@@ -208,7 +221,16 @@ export class ChatFacade {
       }
     }
   }
+
+
+  private acknowledgeIncoming(m: Message) {
+    const me = this.auth.currentUser()?.id;
+    if (!me || m.senderId === me) return;
+
+    const isOpenAndVisible =
+      this.state.selectedChatId() === m.chatId && document.visibilityState === 'visible';
+
+    if (isOpenAndVisible) void this.markAsRead(m.chatId);
+    else void this.signalR.markAsDelivered(m.chatId, m.id);
+  }
 }
-
-
-

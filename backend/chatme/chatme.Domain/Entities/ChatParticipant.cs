@@ -15,6 +15,9 @@ namespace chatme.Domain.Entities
 		public DateTime JoinedAt { get; private set; }
 		public Guid? LastReadMessageId { get; private set; }
 
+		public DateTime? LastDeliveredAt { get; private set; }
+		public DateTime? LastReadAt { get; private set; }
+
 		private ChatParticipant() { }
 
 		internal static ChatParticipant Create(Guid chatId, Guid userId, ChatParticipantRole role) => new()
@@ -26,10 +29,25 @@ namespace chatme.Domain.Entities
 			JoinedAt = DateTime.UtcNow,
 		};
 
-		internal void MarkAsRead(Guid lastReadMessageId)
+		internal bool AdvanceDelivered(DateTime upTo)
+		{
+			if (LastDeliveredAt is not null && LastDeliveredAt >= upTo) return false;
+			LastDeliveredAt = upTo;
+			return true;
+		}
+
+		internal bool AdvanceRead(Guid lastReadMessageId, DateTime upTo)
 		{
 			LastReadMessageId = lastReadMessageId;
+			AdvanceDelivered(upTo); 
+
+			if (LastReadAt is not null && LastReadAt >= upTo) return false;
+			LastReadAt = upTo;
+			return true;
 		}
 	}
-
 }
+
+
+
+

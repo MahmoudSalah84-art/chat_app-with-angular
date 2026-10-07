@@ -37,7 +37,7 @@ namespace chatme.Application.Features.Chats.Commands.CreateDirectChat
 			// لو فيه محادثة بينهم بالفعل، رجّعها بدل ما نعمل واحدة مكررة
 			var existingChat = await chatRepository.GetDirectChatBetweenAsync(userId.Value, request.OtherUserId, cancellationToken);
 			if (existingChat is not null)
-				return Result<ChatDto>.Success(new ChatDto(existingChat.Id, false, otherUser.Name, otherUser.AvatarUrl, [me, otherUser], null, 0));
+				return Result<ChatDto>.Success(new ChatDto(existingChat.Id, false, otherUser.Name, otherUser.AvatarUrl, [me, otherUser], null, 0, []));
 
 			var chatResult = Chat.CreateDirect(userId.Value, request.OtherUserId);
 			if (chatResult.IsFailure)
@@ -47,7 +47,7 @@ namespace chatme.Application.Features.Chats.Commands.CreateDirectChat
 			chatRepository.Add(chat);
 			await unitOfWork.SaveChangesAsync(cancellationToken);
 
-			return Result<ChatDto>.Success(new ChatDto(chat.Id, false, otherUser.Name, otherUser.AvatarUrl, [me, otherUser], null, 0));
+			return Result<ChatDto>.Success(new ChatDto(chat.Id, false, otherUser.Name, otherUser.AvatarUrl, [me, otherUser], null, 0, []));
 		}
 	}
 
