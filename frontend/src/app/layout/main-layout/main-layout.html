@@ -1,17 +1,20 @@
+<div class="h-dvh w-full flex bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
 
-<div class="h-screen w-screen flex bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
+  <!-- Chat List -->
   <div
-    class="w-full md:w-[380px] lg:w-[400px] shrink-0 border-e border-gray-200 dark:border-wa-dark-border h-full md:block"
+    class="w-full md:w-[380px] lg:w-[400px] shrink-0 border-e border-gray-200 dark:border-wa-dark-border h-full"
     [class.hidden]="hasSelectedChat()"
+    [class.md:block]="true"
   >
     <app-chat-list></app-chat-list>
   </div>
- 
+
+  <!-- Chat Window -->
   <div
-    class="flex-1 h-full md:block"
-    [class.hidden]="!hasSelectedChat()" 
+    class="flex-1 h-full min-w-0"
+    [class.hidden]="!hasSelectedChat()"
+    [class.md:block]="true"
   >
     <app-chat-window></app-chat-window>
-
   </div>
 </div>
