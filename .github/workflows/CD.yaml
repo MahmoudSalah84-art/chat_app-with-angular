@@ -95,6 +95,9 @@ jobs:
         shell: pwsh
         run: |
           $config = @{
+            ConnectionStrings = @{
+              DefaultConnection = "${{ secrets.DB_CONNECTION_STRING }}"
+            }
             Jwt = @{
               Key = "${{ secrets.JWT_KEY }}"
               Issuer = "WhatsAppClone.Api"
