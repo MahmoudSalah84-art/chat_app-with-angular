@@ -107,12 +107,16 @@ builder.Services.AddCors(options =>
 	options.AddPolicy(AngularClientPolicy, policy =>
 	{
 		policy
-			.WithOrigins("http://localhost:4200")
+			.WithOrigins("http://localhost:4200", "https://chat-me.runasp.net")
 			.AllowAnyHeader()
 			.AllowAnyMethod()
 			.AllowCredentials(); // لازم عشان SignalR (WebSocket) يشتغل صح مع الـ CORS
 	});
 });
+
+
+
+
 
 var app = builder.Build();
 
