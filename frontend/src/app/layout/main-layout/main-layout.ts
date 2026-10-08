@@ -13,5 +13,5 @@ import { ChatWindow } from '../../features/chat-window/chat-window';
 export class MainLayout {
   private readonly chatFacade = inject(ChatFacade);
  
-  readonly hasSelectedChat = () => this.chatFacade.selectedChat() !== null;
+  readonly hasSelectedChat = () => this.chatFacade.selectedChat() != null;
 }
