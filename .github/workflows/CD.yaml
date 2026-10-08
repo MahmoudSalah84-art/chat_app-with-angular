@@ -199,5 +199,5 @@ jobs:
           server-computer-name: https://${{ secrets.FRONTEND_SERVER_COMPUTER_NAME }}:8172/msdeploy.axd
           server-username: ${{ secrets.FRONTEND_SERVER_USERNAME }}
           server-password: ${{ secrets.FRONTEND_SERVER_PASSWORD }}
-          source-path: 'artifacts/frontend/'
+          source-path: 'artifacts/frontend/whatsapp-clone/browser/'
           target-delete: true
