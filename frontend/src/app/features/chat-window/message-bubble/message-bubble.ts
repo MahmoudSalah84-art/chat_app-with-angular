@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { DestroyRef, Component, computed, inject, input, signal } from '@angular/core';
 import { Message } from '../../../core/models/message.model';
 import { MessageType } from '../../../core/enums/message-type.enum';
 import { AuthService } from '../../../core/services/auth.service';
@@ -8,6 +8,9 @@ import { formatBytes } from '../../../core/utils/attachment-rules';
 import { getMessageStatus } from '../../../core/utils/message-status';
 import { MessageStatus } from '../../../core/enums/message-status.enum';
 import { REACTION_EMOJIS } from '../../../core/constants/reactions';
+
+const LONG_PRESS_MS = 450;
+const MOVE_TOLERANCE_PX = 10;
 
 
 @Component({
@@ -135,8 +138,6 @@ export class MessageBubble {
     }
   }
 
-
-
   readonly reactionEmojis = REACTION_EMOJIS;
   readonly isPickerOpen = signal(false);
 
@@ -163,11 +164,94 @@ export class MessageBubble {
     return [...groups.values()].sort((a, b) => b.count - a.count);
   });
 
-  togglePicker(): void { this.isPickerOpen.update((v) => !v); }
-  closePicker(): void { this.isPickerOpen.set(false); }
+  //togglePicker(): void { this.isPickerOpen.update((v) => !v); }
+  //closePicker(): void { this.isPickerOpen.set(false); }
 
   onReact(emoji: string): void {
     void this.chatFacade.reactToMessage(this.message().id, emoji);
     this.closePicker();
   }
+
+  // ─── Long press / picker logic ──_______________________________________________________________
+  private readonly destroyRef = inject(DestroyRef);
+  private longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private pressStart: { x: number; y: number } | null = null;
+  private longPressFired = false;
+  private pickerOpenedAt = 0;
+
+  readonly pickerBelow = signal(false); // if the picker should open below the bubble (if it's near the top of the screen)
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearLongPress());
+    
+  }
+
+  openPicker(anchor: HTMLElement): void {
+    // الـ scroll container بيقص أي حاجة فوقه، فلو الرسالة قريبة من الحافة نفتح تحت
+    this.pickerBelow.set(anchor.getBoundingClientRect().top < 120);
+    this.pickerOpenedAt = Date.now();
+    this.isPickerOpen.set(true);
+  }
+
+  togglePicker(anchor: HTMLElement): void {
+    this.isPickerOpen() ? this.closePicker() : this.openPicker(anchor);
+  }
+
+  closePicker(): void {
+    this.isPickerOpen.set(false);
+  }
+
+  /** تجاهل أي "click" بييجي بعد رفع الصباع مباشرة من الضغطة الطويلة */
+  onBackdropClick(): void {
+    if (Date.now() - this.pickerOpenedAt < 350) return;
+    this.closePicker();
+  }
+
+  // ─── Long press ───
+  onPointerDown(event: PointerEvent, bubble: HTMLElement): void {
+    this.longPressFired = false; // أي تفاعل جديد يصفّر الحالة القديمة
+
+    if (event.pointerType === 'mouse') return;            // الماوس له hover
+    if (this.message().isDeleted || this.isPickerOpen()) return;
+    if ((event.target as HTMLElement).closest('button, audio, video')) return; // chips / أزرار / controls
+
+    this.clearLongPress();
+    this.pressStart = { x: event.clientX, y: event.clientY };
+    this.longPressTimer = setTimeout(() => {
+      this.longPressFired = true;
+      this.longPressTimer = null;
+      navigator.vibrate?.(15); // haptic خفيف (Android بس، iOS بيتجاهله)
+      this.openPicker(bubble);
+    }, LONG_PRESS_MS);
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    if (!this.longPressTimer || !this.pressStart) return;
+    const moved = Math.hypot(event.clientX - this.pressStart.x, event.clientY - this.pressStart.y);
+    if (moved > MOVE_TOLERANCE_PX) this.clearLongPress(); // المستخدم بيعمل scroll مش long-press
+  }
+
+  clearLongPress(): void {
+    if (this.longPressTimer) clearTimeout(this.longPressTimer);
+    this.longPressTimer = null;
+    this.pressStart = null;
+  }
+
+  /** بعد الضغطة الطويلة المتصفح بيعمل click عند رفع الصباع (ممكن يفتح الصورة/الملف) */
+  onBubbleClick(event: MouseEvent): void {
+    if (!this.longPressFired) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.longPressFired = false;
+  }
+
+  /** يمنع قايمة المتصفح (Save image / Copy) على اللمس بس */
+  onContextMenu(event: Event): void {
+    if (window.matchMedia('(pointer: coarse)').matches) event.preventDefault();
+  }
+
+
+
+
+  
 }

@@ -36,9 +36,9 @@
           </div>
         }
       </div>
-      <div class="relative shrink-0">
+      <div class="relative shrink-0 pointer-coarse:hidden">
         <button
-          (click)="togglePicker()"
+          (click)="togglePicker(bubble)"
           class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-gray-400 dark:text-gray-500 mt-1.5"
           aria-label="تفاعل مع الرسالة"
         >
@@ -73,7 +73,15 @@
     }
 
     <div
-      class="max-w-[75vw] md:max-w-[420px] px-3 py-2 rounded-lg shadow-sm relative"
+      #bubble
+      (pointerdown)="onPointerDown($event, bubble)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="clearLongPress()"
+      (pointercancel)="clearLongPress()"
+      (pointerleave)="clearLongPress()"
+      (click)="onBubbleClick($event)"
+      (contextmenu)="onContextMenu($event)"
+      class="max-w-[65vw] md:max-w-[400px] px-3 py-2 rounded-lg shadow-sm relative pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]"
       [class.bg-wa-teal-light]="isOwnMessage() && !message().isDeleted"
       [class.dark:bg-wa-dark-bubble]="isOwnMessage() && !message().isDeleted"
       [class.bg-white]="!isOwnMessage() && !message().isDeleted"
@@ -81,6 +89,32 @@
       [class.bg-gray-100]="message().isDeleted"
       [class.dark:bg-white/5]="message().isDeleted"
     >
+      <!-- شريط الإيموجي: بيفتح من زرار الـ hover (ماوس) أو من الضغطة الطويلة (لمس) -->
+      @if (isPickerOpen()) {
+        <div class="fixed inset-0 z-10" (click)="onBackdropClick(); $event.stopPropagation()"></div>
+ 
+        <div
+          class="absolute z-20 flex items-center gap-0.5 px-2 py-1 rounded-full shadow-lg bg-white dark:bg-wa-dark-panel"
+          [class.bottom-full]="!pickerBelow()"
+          [class.mb-1]="!pickerBelow()"
+          [class.top-full]="pickerBelow()"
+          [class.mt-1]="pickerBelow()"
+          [class.end-0]="isOwnMessage()"
+          [class.start-0]="!isOwnMessage()"
+          role="menu"
+        >
+          @for (emoji of reactionEmojis; track emoji) {
+            <button
+              type="button"
+              role="menuitem"
+              (click)="onReact(emoji)"
+              [attr.aria-pressed]="myReaction() === emoji"
+              class="text-[26px] leading-none p-1.5 rounded-full transition-transform active:scale-125 md:hover:scale-125"
+              [class]="myReaction() === emoji ? 'bg-black/10 dark:bg-white/20' : ''"
+            >{{ emoji }}</button>
+          }
+        </div>
+      }
       @if (message().isDeleted) {
         <p class="text-[14px] text-gray-500 dark:text-gray-400 italic flex items-center gap-1.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
