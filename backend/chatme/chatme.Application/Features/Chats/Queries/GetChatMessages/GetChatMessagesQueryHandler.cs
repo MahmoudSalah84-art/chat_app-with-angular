@@ -26,6 +26,7 @@ namespace chatme.Application.Features.Chats.Queries.GetChatMessages
 				return Result<List<MessageDto>>.Forbidden("إنت مش عضو في المحادثة دي");
 
 			var messages = await dbContext.MessagesReadOnly
+				.Include(m => m.Reactions)
 				.Where(m => m.ChatId == request.ChatId)
 				.OrderBy(m => m.SentAt)
 				.Select(m => MessageProjections.Map(m))
