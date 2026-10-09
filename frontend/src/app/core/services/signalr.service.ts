@@ -23,6 +23,9 @@ export class SignalRService {
   readonly userStatusChanged$ = new Subject<{ userId: string; isOnline: boolean; lastSeenAt?: string }>();
   readonly messagesDelivered$ = new Subject<{ chatId: string; userId: string; upTo: string }>();
   readonly messagesRead$ = new Subject<{ chatId: string; userId: string; upTo: string }>();
+  readonly messageReactionChanged$ = new Subject<{
+    chatId: string; messageId: string; userId: string; emoji: string | null;
+  }>();
 
 
   async connect(): Promise<void> {
@@ -106,6 +109,10 @@ export class SignalRService {
     this.messagesDelivered$.next({ chatId, userId, upTo }));
     this.hubConnection?.on('MessagesRead', (chatId: string, userId: string, upTo: string) =>
     this.messagesRead$.next({ chatId, userId, upTo }));
+    this.hubConnection?.on('MessageReactionChanged',
+    (chatId: string, messageId: string, userId: string, emoji: string | null) =>
+      this.messageReactionChanged$.next({ chatId, messageId, userId, emoji }),
+    );
   }
 
   sendMessage(chatId: string, type: MessageType, content: string, replyToMessageId: string | null): Promise<Message> {
@@ -144,5 +151,13 @@ export class SignalRService {
   private async invoke<T>( methodName: string, ...args: unknown[]): Promise<T> {
   await this.connect();
   return this.hubConnection!.invoke<T>(  methodName, ...args );
+  }
+
+
+  
+  
+
+  reactToMessage(chatId: string, messageId: string, emoji: string): Promise<void> {
+    return this.invoke<void>('ReactToMessage', chatId, messageId, emoji);
   }
 }

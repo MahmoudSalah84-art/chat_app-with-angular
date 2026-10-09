@@ -45,7 +45,9 @@ export class ChatFacade {
 
     this.signalR.messagesDelivered$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'delivered', e.upTo));
     this.signalR.messagesRead$.subscribe((e) => this.state.applyReceipt(e.chatId, e.userId, 'read', e.upTo));
-
+    this.signalR.messageReactionChanged$.subscribe((e) =>
+          this.state.applyReaction(e.chatId, e.messageId, e.userId, e.emoji));
+      
     document.addEventListener('visibilitychange', () => {
       const id = this.state.selectedChatId();
       if (document.visibilityState === 'visible' && id) void this.markAsRead(id);
@@ -232,5 +234,35 @@ export class ChatFacade {
 
     if (isOpenAndVisible) void this.markAsRead(m.chatId);
     else void this.signalR.markAsDelivered(m.chatId, m.id);
+  }
+
+
+
+  private readonly pendingReactions = new Set<string>();
+
+  /** Optimistic   applyReaction immediate */
+  async reactToMessage(messageId: string, emoji: string) {
+    const chatId = this.state.selectedChatId();
+    const me = this.auth.currentUser()?.id;
+    if (!chatId || !me || this.pendingReactions.has(messageId)) return;
+
+    const message = this.state.selectedMessages().find((m) => m.id === messageId);
+    if (!message || message.isDeleted) return;
+
+    const previous = message.reactions?.find((r) => r.userId === me)?.emoji ?? null;
+    const next = previous === emoji ? null : emoji;
+
+    this.pendingReactions.add(messageId);
+    this.state.applyReaction(chatId, messageId, me, next);
+
+    try {
+      await this.signalR.reactToMessage(chatId, messageId, emoji);
+    } 
+    catch {
+      this.state.applyReaction(chatId, messageId, me, previous);
+    } 
+    finally {
+      this.pendingReactions.delete(messageId);
+    }
   }
 }

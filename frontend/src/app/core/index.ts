@@ -17,7 +17,7 @@ export { UiService } from './services/ui.service';
 
 // models/
 export type { Chat } from './models/chat.model';
-export type { Message } from './models/message.model';
+export type { Message, Reaction , Attachment } from './models/message.model';
 export type { User } from './models/user.model';
 export type { AuthResponse, ApiErrorResponse, AuthOperationResult } from './models/result.model';
 export type { FileUploadResponse, DocumentMessageContent } from './models/upload.model';

@@ -52,7 +52,7 @@ export class ChatStateService {
     this._messagesByChat.update(map => {
       const next = new Map(map);
       const list = next.get(chatId) ?? [];
-      next.set(chatId, list.map(m => m.id === messageId ? { ...m, isDeleted: true, content: '' } : m));
+      next.set(chatId, list.map(m => m.id === messageId ? { ...m, isDeleted: true, content: '', reactions: [] } : m));
       return next;
     });
   }
@@ -120,5 +120,24 @@ export class ChatStateService {
         return { ...c, receipts };
       }),
     );
+  }
+
+    /**(idempotent)*/
+  applyReaction(chatId: string, messageId: string, userId: string, emoji: string | null) {
+    this._messagesByChat.update((map) => {
+      const list = map.get(chatId);
+      if (!list) return map;
+
+      const next = new Map(map);
+      next.set(
+        chatId,
+        list.map((m) => {
+          if (m.id !== messageId) return m;
+          const others = (m.reactions ?? []).filter((r) => r.userId !== userId);
+          return { ...m, reactions: emoji ? [...others, { userId, emoji }] : others };
+        }),
+      );
+      return next;
+    });
   }
 }

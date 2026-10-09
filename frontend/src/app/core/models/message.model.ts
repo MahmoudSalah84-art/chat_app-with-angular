@@ -11,7 +11,8 @@ export interface Message {
   replyToMessageId?: string | null;
   isEdited: boolean;
   isDeleted: boolean;
-   attachment?: Attachment | null;
+  attachment?: Attachment | null;
+  reactions: Reaction[];
 }
 
 export interface Attachment {
@@ -20,3 +21,8 @@ export interface Attachment {
   contentType: string;
   sizeInBytes: number;
 }
+export interface Reaction {
+  userId: string;
+  emoji: string;
+}
+ 
