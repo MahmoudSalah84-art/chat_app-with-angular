@@ -22,6 +22,8 @@ namespace chatme.Domain.Entities
 		public Guid? ReplyToMessageId { get; private set; }
 		public bool IsEdited { get; private set; }
 		public bool IsDeleted { get; private set; }
+		private readonly List<MessageReaction> _reactions = [];
+		public IReadOnlyCollection<MessageReaction> Reactions => _reactions.AsReadOnly();
 
 		private Message() { }
 
@@ -96,6 +98,34 @@ namespace chatme.Domain.Entities
 			IsDeleted = true;
 			ReplyToMessageId = null;
 			return Result.Success();
+		}
+		
+		internal Result<ReactionChange> ToggleReaction(Guid userId, string emoji)
+		{
+			if (IsDeleted)
+				return Result<ReactionChange>.Failure("مينفعش تتفاعل مع رسالة محذوفة");
+
+			var canonical = ReactionEmojis.Normalize(emoji);
+			if (canonical is null)
+				return Result<ReactionChange>.Failure("التفاعل ده مش مسموح");
+
+			var existing = _reactions.FirstOrDefault(r => r.UserId == userId);
+
+			if (existing is null)
+			{
+				var added = MessageReaction.Create(Id, userId, canonical);
+				_reactions.Add(added);
+				return Result<ReactionChange>.Success(new ReactionChange(added, canonical));
+			}
+
+			if (existing.Emoji == canonical) // if the user is trying to react with the same emoji, remove the reaction
+			{
+				_reactions.Remove(existing);             
+				return Result<ReactionChange>.Success(new ReactionChange(null, null));
+			}
+
+			existing.ChangeEmoji(canonical);
+			return Result<ReactionChange>.Success(new ReactionChange(null, canonical));
 		}
 	}
 }

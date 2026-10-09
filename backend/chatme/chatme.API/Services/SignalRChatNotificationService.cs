@@ -31,6 +31,11 @@ namespace chatme.API.Services
 			hubContext.Clients.Group(GroupName(chatId))
 				.SendAsync("MessagesRead", chatId, userId, DateTime.SpecifyKind(upToSentAt, DateTimeKind.Utc), cancellationToken);
 
+		public Task NotifyMessageReactionChangedAsync(Guid chatId, Guid messageId, Guid userId, string? emoji, CancellationToken cancellationToken = default) =>
+			hubContext.Clients.Group(GroupName(chatId))
+				.SendAsync("MessageReactionChanged", chatId, messageId, userId, emoji, cancellationToken);
+
+
 		public static string GroupName(Guid chatId) => $"chat-{chatId}";
 	}
 }

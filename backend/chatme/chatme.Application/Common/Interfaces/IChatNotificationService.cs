@@ -11,5 +11,6 @@ namespace chatme.Application.Common.Interfaces
 		Task NotifyUserStatusChangedAsync(Guid userId, bool isOnline, DateTime? lastSeenAt, CancellationToken cancellationToken = default);
 		Task NotifyMessagesDeliveredAsync(Guid chatId, Guid userId, DateTime upToSentAt, CancellationToken cancellationToken = default);
 		Task NotifyMessagesReadAsync(Guid chatId, Guid userId, DateTime upToSentAt, CancellationToken cancellationToken = default);
+		Task NotifyMessageReactionChangedAsync(Guid chatId, Guid messageId, Guid userId, string? emoji, CancellationToken cancellationToken = default);
 	}
 }

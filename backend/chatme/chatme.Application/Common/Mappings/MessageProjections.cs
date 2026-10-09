@@ -11,7 +11,8 @@ namespace chatme.Application.Common.Mappings
 			m.IsEdited, m.IsDeleted,
 			m.Attachment == null
 				? null
-				: new AttachmentDto(m.Attachment.Url, m.Attachment.FileName, m.Attachment.ContentType, m.Attachment.SizeInBytes));
+				: new AttachmentDto(m.Attachment.Url, m.Attachment.FileName, m.Attachment.ContentType, m.Attachment.SizeInBytes),
+			m.Reactions.Where(r => !m.IsDeleted).Select(r => new ReactionDto(r.UserId, r.Emoji)).ToList());
 
 		private static readonly Func<Message, MessageDto> Compiled = ToDto.Compile();
 		public static MessageDto Map(Message message) => Compiled(message);

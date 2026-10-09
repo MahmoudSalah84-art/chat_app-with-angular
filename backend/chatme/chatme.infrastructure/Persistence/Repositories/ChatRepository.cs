@@ -26,5 +26,16 @@ namespace chatme.infrastructure.Persistence.Repositories
 
 		public void Add(Chat chat) => dbContext.Chats.Add(chat);
 		public void AddMessage(Message message) => dbContext.Messages.Add(message);
+
+
+
+		public Task<Chat?> GetByIdForReactionAsync(Guid chatId, Guid messageId, CancellationToken cancellationToken = default) =>
+			dbContext.Chats
+				.Include(c => c.Participants)
+				.Include(c => c.Messages.Where(m => m.Id == messageId))
+					.ThenInclude(m => m.Reactions)
+				.FirstOrDefaultAsync(c => c.Id == chatId, cancellationToken);
+
+		public void AddReaction(MessageReaction reaction) => dbContext.Add(reaction);
 	}
 }

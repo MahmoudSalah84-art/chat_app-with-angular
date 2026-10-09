@@ -200,6 +200,25 @@ namespace chatme.Domain.Entities
 			return result;
 		}
 
+		public Result<ReactionChange> ReactToMessage(Guid userId, Guid messageId, string emoji)
+		{
+			if (!IsParticipant(userId))
+				return Result<ReactionChange>.Forbidden("إنت مش عضو في المحادثة دي");
+
+			var message = _messages.FirstOrDefault(m => m.Id == messageId);
+			if (message is null)
+				return Result<ReactionChange>.NotFound("الرسالة دي مش موجودة");
+
+			var result = message.ToggleReaction(userId, emoji);
+			if (result.IsFailure)
+				return result;
+
+			RaiseDomainEvent(new MessageReactionChangedDomainEvent(Id, messageId, userId, result.Value!.CurrentEmoji));
+			return result;
+		}
+
+
+
 		public bool IsParticipant(Guid userId) => _participants.Any(p => p.UserId == userId);
 
 	}

@@ -7,6 +7,7 @@ using chatme.Application.Features.Messages.Commands.DeleteMessage;
 using chatme.Application.Features.Messages.Commands.EditMessage;
 using chatme.Application.Features.Messages.Commands.MarkAllMessagesDelivered;
 using chatme.Application.Features.Messages.Commands.MarkMessagesDelivered;
+using chatme.Application.Features.Messages.Commands.ReactToMessage;
 using chatme.Application.Features.Messages.Commands.SendMessage;
 using chatme.Application.Features.Users.Commands.SetOnlineStatus;
 using chatme.Domain.Common;
@@ -82,7 +83,15 @@ namespace chatme.API.Hubs
 		public async Task MarkAsDelivered(Guid chatId, Guid upToMessageId) =>
 			Unwrap(await mediator.Send(new MarkMessagesDeliveredCommand(chatId, upToMessageId)));
 
-	private static T Unwrap<T>(Result<T> result)
+
+		public async Task ReactToMessage(Guid chatId, Guid messageId, string emoji) =>
+			Unwrap(await mediator.Send(new ReactToMessageCommand(chatId, messageId, emoji)));
+
+
+
+
+
+		private static T Unwrap<T>(Result<T> result)
 		{
 			if (result.IsFailure)
 				throw new HubException(string.Join(" - ", result.Errors));

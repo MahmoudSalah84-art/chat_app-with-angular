@@ -22,6 +22,9 @@ namespace chatme.infrastructure.Persistence.Configurations
 				a.Property(x => x.ContentType).HasMaxLength(100).HasColumnName("AttachmentContentType");
 				a.Property(x => x.SizeInBytes).HasColumnName("AttachmentSize");
 			});
+
+			builder.HasMany(m => m.Reactions).WithOne().HasForeignKey(r => r.MessageId).OnDelete(DeleteBehavior.Cascade);
+			builder.Navigation(m => m.Reactions).UsePropertyAccessMode(PropertyAccessMode.Field);
 		}
 	}
 }

@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
 import { formatBytes } from '../../../core/utils/attachment-rules';
 import { getMessageStatus } from '../../../core/utils/message-status';
 import { MessageStatus } from '../../../core/enums/message-status.enum';
+import { REACTION_EMOJIS } from '../../../core/constants/reactions';
 
 
 @Component({
@@ -136,4 +137,37 @@ export class MessageBubble {
 
 
 
+  readonly reactionEmojis = REACTION_EMOJIS;
+  readonly isPickerOpen = signal(false);
+
+  readonly myReaction = computed(() => {
+    const me = this.authService.currentUser()?.id;
+    return this.message().reactions?.find((r) => r.userId === me)?.emoji ?? null;
+  });
+
+  /** تجميع للعرض: { emoji, count, mine, names } مرتبة بالأكتر استخدامًا */
+  readonly reactionGroups = computed(() => {
+    const me = this.authService.currentUser()?.id;
+    const names = new Map(
+      (this.chatFacade.selectedChat()?.participants ?? []).map((p) => [p.id, p.id === me ? 'إنت' : p.name]),
+    );
+
+    const groups = new Map<string, { emoji: string; count: number; mine: boolean; names: string[] }>();
+    for (const r of this.message().reactions ?? []) {
+      const g = groups.get(r.emoji) ?? { emoji: r.emoji, count: 0, mine: false, names: [] };
+      g.count++;
+      g.mine ||= r.userId === me;
+      g.names.push(names.get(r.userId) ?? '');
+      groups.set(r.emoji, g);
+    }
+    return [...groups.values()].sort((a, b) => b.count - a.count);
+  });
+
+  togglePicker(): void { this.isPickerOpen.update((v) => !v); }
+  closePicker(): void { this.isPickerOpen.set(false); }
+
+  onReact(emoji: string): void {
+    void this.chatFacade.reactToMessage(this.message().id, emoji);
+    this.closePicker();
+  }
 }
