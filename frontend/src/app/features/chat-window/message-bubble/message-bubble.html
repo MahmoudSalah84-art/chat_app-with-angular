@@ -1,77 +1,28 @@
-<div class="flex mb-1.5 group relative" [class.justify-end]="isOwnMessage()" [class.justify-start]="!isOwnMessage()">
+<!-- الصف كله بيتلوّن لما الرسالة تتحدد (زي واتساب). الـ -mx / px بتخلي اللون ياخد عرض الشات كله -->
+<div
+  class="flex mb-1.5 group relative -mx-6 px-6 md:-mx-16 md:px-16 transition-colors"
+  [class.justify-end]="isOwnMessage()"
+  [class.justify-start]="!isOwnMessage()"
+  [style.background-color]="isSelected() ? 'rgba(0, 168, 132, 0.18)' : null"
+>
   <div class="flex items-start gap-1" [class.flex-row-reverse]="isOwnMessage()">
     @if (!message().isDeleted) {
-      <div class="relative shrink-0">
+      <!-- Desktop: زرار بيحدد الرسالة (فيظهر شريط الإجراءات فوق + الإيموجي). على اللمس بنستخدم الضغطة الطويلة -->
+      <div class="relative shrink-0 pointer-coarse:hidden">
         <button
-          (click)="toggleMenu()"
-          class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 dark:text-gray-500 mt-1.5"
+          type="button"
+          (click)="onSelectClick($event)"
+          class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-gray-400 dark:text-gray-500 mt-1.5"
+          [class.opacity-100]="isSelected()"
           aria-label="خيارات الرسالة"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 8a2 2 0 100-4 2 2 0 000 4zM12 14a2 2 0 100-4 2 2 0 000 4zM12 20a2 2 0 100-4 2 2 0 000 4z"/>
           </svg>
         </button>
-
-        @if (isMenuOpen()) {
-          <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
-
-          <div
-            class="absolute z-20 top-full mt-1 bg-white dark:bg-wa-dark-panel shadow-lg rounded-md py-1 min-w-[140px]"
-            [class.end-0]="isOwnMessage()"
-            [class.start-0]="!isOwnMessage()"
-          >
-            <button (click)="onReplyClick()" class="w-full text-start px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">
-              رد
-            </button>
-            @if (canEdit()) {
-              <button (click)="onEditClick()" class="w-full text-start px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">
-                تعديل
-              </button>
-            }
-            @if (canDelete()) {
-              <button (click)="onDeleteClick()" class="w-full text-start px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-white/10">
-                حذف
-              </button>
-            }
-          </div>
-        }
-      </div>
-      <div class="relative shrink-0 pointer-coarse:hidden">
-        <button
-          (click)="togglePicker(bubble)"
-          class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-gray-400 dark:text-gray-500 mt-1.5"
-          aria-label="تفاعل مع الرسالة"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M8.5 14.5a4.5 4.5 0 007 0M9 9.5h.01M15 9.5h.01"/>
-          </svg>
-        </button>
-
-        @if (isPickerOpen()) {
-          <div class="fixed inset-0 z-10" (click)="closePicker()"></div>
-
-          <div
-            class="absolute z-20 bottom-full mb-1 flex items-center gap-0.5 px-2 py-1 rounded-full shadow-lg bg-white dark:bg-wa-dark-panel"
-            [class.end-0]="isOwnMessage()"
-            [class.start-0]="!isOwnMessage()"
-            role="menu"
-          >
-            @for (emoji of reactionEmojis; track emoji) {
-              <button
-                type="button"
-                role="menuitem"
-                (click)="onReact(emoji)"
-                [attr.aria-pressed]="myReaction() === emoji"
-                class="text-[22px] leading-none p-1 rounded-full transition-transform hover:scale-125"
-                [class]="myReaction() === emoji ? 'bg-black/10 dark:bg-white/20' : ''"
-              >{{ emoji }}</button>
-            }
-          </div>
-        }
       </div>
     }
-
+ 
     <div
       #bubble
       (pointerdown)="onPointerDown($event, bubble)"
@@ -89,19 +40,18 @@
       [class.bg-gray-100]="message().isDeleted"
       [class.dark:bg-white/5]="message().isDeleted"
     >
-      <!-- شريط الإيموجي: بيفتح من زرار الـ hover (ماوس) أو من الضغطة الطويلة (لمس) -->
-      @if (isPickerOpen()) {
-        <div class="fixed inset-0 z-10" (click)="onBackdropClick(); $event.stopPropagation()"></div>
- 
+      <!-- شريط الإيموجي: بيظهر فوق الرسالة (أو تحتها لو قريبة من أول الشات) طول ما الرسالة متحددة -->
+      @if (isSelected()) {
         <div
           class="absolute z-20 flex items-center gap-0.5 px-2 py-1 rounded-full shadow-lg bg-white dark:bg-wa-dark-panel"
           [class.bottom-full]="!pickerBelow()"
-          [class.mb-1]="!pickerBelow()"
+          [class.mb-1.5]="!pickerBelow()"
           [class.top-full]="pickerBelow()"
-          [class.mt-1]="pickerBelow()"
+          [class.mt-1.5]="pickerBelow()"
           [class.end-0]="isOwnMessage()"
           [class.start-0]="!isOwnMessage()"
           role="menu"
+          aria-label="التفاعل مع الرسالة"
         >
           @for (emoji of reactionEmojis; track emoji) {
             <button
@@ -109,12 +59,13 @@
               role="menuitem"
               (click)="onReact(emoji)"
               [attr.aria-pressed]="myReaction() === emoji"
-              class="text-[26px] leading-none p-1.5 rounded-full transition-transform active:scale-125 md:hover:scale-125"
+              class="text-[28px] leading-none p-1.5 rounded-full transition-transform active:scale-125 md:hover:scale-125"
               [class]="myReaction() === emoji ? 'bg-black/10 dark:bg-white/20' : ''"
             >{{ emoji }}</button>
           }
         </div>
       }
+ 
       @if (message().isDeleted) {
         <p class="text-[14px] text-gray-500 dark:text-gray-400 italic flex items-center gap-1.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -128,10 +79,11 @@
         @if (repliedMessage(); as replied) {
           <div class="bg-black/5 dark:bg-white/10 border-e-4 border-wa-green-light rounded ps-2 pe-2 py-1 mb-1.5 text-xs">
             <p class="text-gray-600 dark:text-gray-300 truncate">
-              {{ replied.isDeleted ? 'تم حذف هذه الرسالة' : formatRepliedPreview(replied) }}
+              {{ replied.isDeleted ? 'تم حذف هذه الرسالة' : (replied.type === typeEnum.Image ? '📷 صورة' : replied.content) }}
             </p>
           </div>
         }
+ 
         @switch (message().type) {
           @case (typeEnum.Image) {
             <img [src]="imageUrl()" alt="صورة مرسلة"  loading="lazy" (click)="openLightbox()"
@@ -163,50 +115,38 @@
             </p>
           }    
         }
-        @if (attachment() && message().content) {
-        <p class="text-[14.5px] text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{{ message().content }}
-        </p>
+        @if (reactionGroups().length) {
+          <div class="flex flex-wrap gap-1 mt-1">
+            @for (g of reactionGroups(); track g.emoji) {
+              <button
+                type="button"
+                (click)="onReact(g.emoji)"
+                [title]="g.names.join('، ')"
+                class="flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors"
+                [class]="g.mine
+                  ? 'bg-black/10 dark:bg-white/20 border-wa-green-light'
+                  : 'bg-black/5 dark:bg-white/10 border-transparent'"
+              >
+                <span class="text-sm leading-none">{{ g.emoji }}</span>
+                @if (g.count > 1) {
+                  <span class="text-gray-600 dark:text-gray-300">{{ g.count }}</span>
+                }
+              </button>
+            }
+          </div>
+        }
       }
-      @if (reactionGroups().length) {
-        <div class="flex flex-wrap gap-1 mt-1">
-          @for (g of reactionGroups(); track g.emoji) {
-            <button
-              type="button"
-              (click)="onReact(g.emoji)"
-              [title]="g.names.join('، ')"
-              class="flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors"
-              [class]="g.mine
-                ? 'bg-black/10 dark:bg-white/20 border-wa-green-light'
-                : 'bg-black/5 dark:bg-white/10 border-transparent'"
-            >
-              <span class="text-sm leading-none">{{ g.emoji }}</span>
-              @if (g.count > 1) {
-                <span class="text-gray-600 dark:text-gray-300">{{ g.count }}</span>
-              }
-            </button>
-          }
-        </div>
-      }
-    }
+ 
       <div class="flex items-center justify-end gap-1 mt-0.5">
         @if (message().isEdited && !message().isDeleted) {
           <span class="text-[11px] text-gray-400 dark:text-gray-500 italic">معدّلة</span>
         }
         <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ time() }}</span>
-
-        @if (isOwnMessage() && !message().isDeleted) { 
-         <span
-            class="shrink-0 transition-colors"
-            [class.text-gray-400]="status() !== statusEnum.Read"
-            [class.text-[#53bdeb]]="status() === statusEnum.Read"
-            [attr.aria-label]="status() === statusEnum.Read ? 'اتقرت' : status() === statusEnum.Delivered ? 'وصلت' : 'اتبعتت'"
-          >
-            <svg width="17" height="16" viewBox="0 0 17 16" fill="none" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 8.5l3.5 3.5L11 4.5" /> <!-- This is the first checkmark -->
-              @if (status() !== statusEnum.Sent) {
-                <path d="M5.5 8.5L9 12l6.5-7.5" />
-              }
+ 
+        @if (isOwnMessage() && !message().isDeleted) {
+          <span class="text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 16 15" fill="currentColor">
+              <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512z"/>
             </svg>
           </span>
         }
@@ -214,41 +154,4 @@
     </div>
   </div>
 </div>
-
-<!-- Lightbox Modal for Images -->
-@if (isLightboxOpen()) {
-  <div class="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4 animate-fadeIn" (click)="closeLightbox()">
-    <div class="absolute top-4 end-4 flex items-center gap-3" (click)="$event.stopPropagation()">
-      <a
-        [href]="mediaUrl()"
-        download
-        target="_blank"
-        class="text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-        aria-label="تحميل الصورة"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      </a>
-      <button
-        (click)="closeLightbox()"
-        class="text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-        aria-label="إغلاق"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-
-    <img
-      [src]="mediaUrl()"
-      alt="عرض الصورة بالحجم الكامل"
-      class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl select-none"
-      (click)="$event.stopPropagation()"
-    />
-  </div>
-}
-
+ 
