@@ -32,6 +32,7 @@ html, body {
   height: 100%;
   margin: 0;
   font-family: var(--font-family-sans);
+  overscroll-behavior: none;
 }
 
 /* انتقال سلس بين الوضع العادي والليلي */
