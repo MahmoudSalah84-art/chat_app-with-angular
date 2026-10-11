@@ -22,7 +22,7 @@ export class NewChat{
     const query = this._searchQuery().trim().toLowerCase();
     const contacts = this.chatFacade.contacts();
     if (!query) return contacts;
-    return contacts.filter((contact) => contact.name.toLowerCase().includes(query));
+    return contacts.filter((contact) => contact.email.toLowerCase().includes(query));
   });
 
   constructor() {

@@ -21,7 +21,7 @@ namespace chatme.Application.Features.Chats.Queries.GetUserChats
 			var chats = await dbContext.Chats
 				.Include(c => c.Participants)
 				.Include(c => c.Messages)
-				.Where(c => c.Participants.Any(p => p.UserId == userId))
+				.Where(c => c.Participants.Any(p => p.UserId == userId) && c.Messages.Any())
 				.ToListAsync(cancellationToken);
 
 			var allParticipantIds = chats
