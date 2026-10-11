@@ -9,9 +9,8 @@ import { getMessageStatus } from '../../../core/utils/message-status';
 import { MessageStatus } from '../../../core/enums/message-status.enum';
 import { REACTION_EMOJIS } from '../../../core/constants/reactions';
 
-const LONG_PRESS_MS = 450;
-const MOVE_TOLERANCE_PX = 10;
-
+const LONG_PRESS_MS = 400;
+const MOVE_TOLERANCE_PX = 20;
 
 @Component({
   selector: 'app-message-bubble',
