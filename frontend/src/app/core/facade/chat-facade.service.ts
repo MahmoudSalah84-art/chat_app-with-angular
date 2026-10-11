@@ -24,7 +24,8 @@ export class ChatFacade {
   
   readonly uploadProgress = signal<number | null>(null);
   readonly uploadError = signal<string | null>(null);
-
+  private readonly _selectedMessageId = signal<string | null>(null);
+  private selectedAt = 0;
 
   constructor() {
     this.api.loadChats().then(chats => this.state.setChats(chats));
@@ -84,6 +85,14 @@ export class ChatFacade {
     return id ? this.selectedMessages().find(m => m.id === id) : undefined;
   });
 
+  readonly selectedMessage = computed(() => {
+    const id = this._selectedMessageId();
+    if (!id) return undefined;
+    const m = this.selectedMessages().find((x) => x.id === id);
+    return m && !m.isDeleted ? m : undefined; 
+  });
+
+
   // ─── Actions ───
   async loadChats() {
     const chats = await this.api.loadChats();
@@ -99,6 +108,7 @@ export class ChatFacade {
     this.state.selectChat(chatId);
     this._replyToMessageId.set(null);
     this._editingMessageId.set(null);
+    this._selectedMessageId.set(null);
 
     if (!this.state.messagesByChat().has(chatId)) {
       const messages = await this.api.loadMessages(chatId);
@@ -108,7 +118,10 @@ export class ChatFacade {
     await this.markAsRead(chatId);
   }
 
-  closeChat() { this.state.selectChat(null); }
+  closeChat() { 
+    this.state.selectChat(null); 
+    this._selectedMessageId.set(null);
+  }
 
   setSearchQuery(q: string) { this._searchQuery.set(q); }
   setReplyTo(id: string | null) { this._replyToMessageId.set(id); }
@@ -167,6 +180,7 @@ export class ChatFacade {
     this._searchQuery.set('');
     this._replyToMessageId.set(null);
     this._editingMessageId.set(null);
+    this._selectedMessageId.set(null);
   }
 
   async sendImageMessage(dataUrl: string) {
@@ -264,5 +278,17 @@ export class ChatFacade {
     finally {
       this.pendingReactions.delete(messageId);
     }
+  }
+
+
+  selectMessage(id: string) {
+    this.selectedAt = Date.now();
+    this._selectedMessageId.set(id);
+  }
+  clearSelection() { this._selectedMessageId.set(null); }
+
+  clearSelectionFromTap() {
+    if (Date.now() - this.selectedAt < 350) return;
+    this._selectedMessageId.set(null);
   }
 }

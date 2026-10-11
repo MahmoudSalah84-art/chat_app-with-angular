@@ -23,6 +23,11 @@ export class MessageBubble {
   private readonly chatFacade = inject(ChatFacade);
   private readonly authService = inject(AuthService);
 
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearLongPress());
+    
+  }
+
   readonly message = input.required<Message>();
   readonly attachment = computed(() => this.message().attachment ?? null);
   readonly imageUrl = computed(() => {
@@ -140,6 +145,7 @@ export class MessageBubble {
 
   readonly reactionEmojis = REACTION_EMOJIS;
   readonly isPickerOpen = signal(false);
+  readonly isSelected = computed(() => this.chatFacade.selectedMessage()?.id === this.message().id);
 
   readonly myReaction = computed(() => {
     const me = this.authService.currentUser()?.id;
@@ -164,9 +170,6 @@ export class MessageBubble {
     return [...groups.values()].sort((a, b) => b.count - a.count);
   });
 
-  //togglePicker(): void { this.isPickerOpen.update((v) => !v); }
-  //closePicker(): void { this.isPickerOpen.set(false); }
-
   onReact(emoji: string): void {
     void this.chatFacade.reactToMessage(this.message().id, emoji);
     this.closePicker();
@@ -181,10 +184,7 @@ export class MessageBubble {
 
   readonly pickerBelow = signal(false); // if the picker should open below the bubble (if it's near the top of the screen)
 
-  constructor() {
-    this.destroyRef.onDestroy(() => this.clearLongPress());
-    
-  }
+
 
   openPicker(anchor: HTMLElement): void {
     // الـ scroll container بيقص أي حاجة فوقه، فلو الرسالة قريبة من الحافة نفتح تحت
@@ -222,8 +222,11 @@ export class MessageBubble {
       this.longPressTimer = null;
       navigator.vibrate?.(15); // haptic خفيف (Android بس، iOS بيتجاهله)
       this.openPicker(bubble);
+      this.chatFacade.selectMessage(this.message().id);
     }, LONG_PRESS_MS);
   }
+ 
+
 
   onPointerMove(event: PointerEvent): void {
     if (!this.longPressTimer || !this.pressStart) return;
@@ -251,7 +254,11 @@ export class MessageBubble {
   }
 
 
-
+  onSelectClick(event: Event): void {
+    event.stopPropagation();
+    if (this.isSelected()) this.chatFacade.clearSelection();
+    else this.chatFacade.selectMessage(this.message().id);
+  }
 
   
 }
