@@ -98,7 +98,7 @@ namespace chatme.infrastructure.Identity
 
 		public Task<List<UserDto>> GetContactsAsync(Guid excludeUserId, CancellationToken cancellationToken = default) =>
 			userManager.Users
-				.Where(u => u.Id != excludeUserId)
+				.Where(u => u.Id != excludeUserId )
 				.Select(u => new UserDto(u.Id, u.Name, u.Email!, u.AvatarUrl, u.About, u.PhoneNumber, u.IsOnline, u.LastSeenAt))
 				.ToListAsync(cancellationToken);
 
