@@ -9,7 +9,7 @@ import { getMessageStatus } from '../../../core/utils/message-status';
 import { MessageStatus } from '../../../core/enums/message-status.enum';
 import { REACTION_EMOJIS } from '../../../core/constants/reactions';
 
-const LONG_PRESS_MS = 400;
+const LONG_PRESS_MS = 300;
 const MOVE_TOLERANCE_PX = 20;
 
 @Component({
@@ -208,24 +208,38 @@ export class MessageBubble {
 
   // ─── Long press ───
   onPointerDown(event: PointerEvent, bubble: HTMLElement): void {
-    this.longPressFired = false; // أي تفاعل جديد يصفّر الحالة القديمة
+  if (event.pointerType === 'mouse') return;
 
-    if (event.pointerType === 'mouse') return;            // الماوس له hover
-    if (this.message().isDeleted || this.isPickerOpen()) return;
-    if ((event.target as HTMLElement).closest('button, audio, video')) return; // chips / أزرار / controls
+  if (this.message().isDeleted) return;
 
-    this.clearLongPress();
-    this.pressStart = { x: event.clientX, y: event.clientY };
-    this.longPressTimer = setTimeout(() => {
-      this.longPressFired = true;
-      this.longPressTimer = null;
-      navigator.vibrate?.(15); // haptic خفيف (Android بس، iOS بيتجاهله)
-      this.openPicker(bubble);
-      this.chatFacade.selectMessage(this.message().id);
-    }, LONG_PRESS_MS);
+  // لو الـ picker مفتوح، اقفله واسمح ببدء ضغطة جديدة
+  if (this.isPickerOpen()) {
+    this.closePicker();
   }
- 
 
+  this.longPressFired = false;
+
+  if ((event.target as HTMLElement).closest('button, audio, video')) {
+    return;
+  }
+
+  this.clearLongPress();
+
+  this.pressStart = {
+    x: event.clientX,
+    y: event.clientY
+  };
+
+  this.longPressTimer = setTimeout(() => {
+    this.longPressFired = true;
+    this.longPressTimer = null;
+
+    navigator.vibrate?.(15);
+
+    this.openPicker(bubble);
+    this.chatFacade.selectMessage(this.message().id);
+  }, LONG_PRESS_MS);
+}
 
   onPointerMove(event: PointerEvent): void {
     if (!this.longPressTimer || !this.pressStart) return;
