@@ -1,26 +1,4 @@
-<!-- 
-<div class="h-dvh w-full flex bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
-
-  <div
-    class="w-full md:w-[380px] lg:w-[400px] shrink-0 border-e border-gray-200 dark:border-wa-dark-border h-full"
-    [class.hidden]="hasSelectedChat()"
-    [class.md:block]="true"
-  >
-    <app-chat-list></app-chat-list>
-  </div>
-  
-  <div
-    class="flex-1 h-full min-w-0"
-    [class.hidden]="!hasSelectedChat()"
-    [class.md:block]="true"
-  >
-    <app-chat-window></app-chat-window>
-  </div>
-</div>
-
--->
-
-<div class="h-screen w-screen flex flex-col bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
+<div class="h-dvh w-screen flex flex-col bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
   @if (showPushPrompt()) {
     <div class="flex items-center gap-3 px-4 py-2.5 bg-wa-green text-white text-sm" role="region" aria-label="تفعيل الإشعارات">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="shrink-0">
