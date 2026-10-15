@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using WebPush;
 
 namespace chatme.infrastructure
 {
@@ -64,6 +65,14 @@ namespace chatme.infrastructure
 			});
 
 			services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
+
+			services.Configure<WebPushSettings>(configuration.GetSection(WebPushSettings.SectionName));
+			services.AddSingleton(_ => new WebPushClient());
+			services.AddScoped<IWebPushSender, WebPushSender>();
+
+			services.AddSingleton<PushJobQueue>();
+			services.AddSingleton<IPushJobQueue>(sp => sp.GetRequiredService<PushJobQueue>());
+			services.AddHostedService<PushDispatchWorker>();
 
 			return services;
 		}
