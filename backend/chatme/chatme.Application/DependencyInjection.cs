@@ -1,9 +1,7 @@
 ﻿using chatme.Application.Common.Behaviors;
+using chatme.Application.Features.Push;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace chatme.Application
 {
@@ -18,6 +16,7 @@ namespace chatme.Application
 			});
 
 			services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+			services.AddScoped<MessagePushNotifier>();
 
 			return services;
 		}
