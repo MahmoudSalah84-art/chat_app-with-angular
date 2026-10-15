@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import {User, AuthApiService, AuthOperationResult, AuthResponse} from '../index';
-import { PushService } from './push.service';
 
 const TOKEN_KEY = 'chatme-token';
 const USER_KEY = 'chatme-user';
@@ -22,7 +21,6 @@ export class AuthService {
   private readonly _isLoading = signal(false);
   readonly isLoading = this._isLoading.asReadonly();
 
-  private readonly push = inject(PushService);
 
  
   async register(name: string, email: string, password: string): Promise<AuthOperationResult> {
@@ -34,7 +32,6 @@ export class AuthService {
   }
 
   logout(): void {
-    this.push.cleanupOnLogout();
     this._isAuthenticated.set(false);
     this._currentUser.set(null);
     localStorage.removeItem(TOKEN_KEY);

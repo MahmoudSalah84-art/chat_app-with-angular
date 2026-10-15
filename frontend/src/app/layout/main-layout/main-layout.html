@@ -1,20 +1,4 @@
 <div class="h-dvh w-screen flex flex-col bg-gray-100 dark:bg-wa-dark-bg overflow-hidden">
-  @if (showPushPrompt()) {
-    <div class="flex items-center gap-3 px-4 py-2.5 bg-wa-green text-white text-sm" role="region" aria-label="تفعيل الإشعارات">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="shrink-0">
-        <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/>
-      </svg>
-      <p class="flex-1">فعّل الإشعارات عشان توصلك الرسايل حتى لو الموقع مقفول</p>
-      <button
-        type="button"
-        (click)="onEnablePush()"
-        [disabled]="isPushBusy()"
-        class="px-3 py-1 rounded-full bg-white text-wa-green font-medium disabled:opacity-60"
-      >تفعيل</button>
-      <button type="button" (click)="onDismissPush()" class="px-2 py-1 opacity-90 hover:opacity-100" aria-label="لاحقًا">لاحقًا</button>
-    </div>
-  }
-
   <div class="flex-1 min-h-0 flex">
     <div
       class="w-full md:w-[380px] lg:w-[400px] shrink-0 border-e border-gray-200 dark:border-wa-dark-border h-full md:block"
