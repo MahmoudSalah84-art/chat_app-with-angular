@@ -12,6 +12,7 @@ namespace chatme.Application.Common.Interfaces
 		IQueryable<Message> MessagesReadOnly { get; }
 		DbSet<Message> Messages { get; }
 
+		DbSet<WebPushSubscription> PushSubscriptions { get; }
 
 		Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 	}

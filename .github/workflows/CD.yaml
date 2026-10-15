@@ -109,6 +109,11 @@ jobs:
               ApiKey = "${{ secrets.CLOUDINARY_API_KEY }}"
               ApiSecret = "${{ secrets.CLOUDINARY_API_SECRET }}"
             }
+            WebPush = @{
+              Subject = "${{ secrets.WebPush_Subject }}"
+              PublicKey = "${{ secrets.WebPush_PublicKey }}"
+              PrivateKey = "${{ secrets.WebPush_PrivateKey }}"
+            }
           } | ConvertTo-Json -Depth 10
 
           $config | Out-File "artifacts/backend/appsettings.Production.json" -Encoding utf8
