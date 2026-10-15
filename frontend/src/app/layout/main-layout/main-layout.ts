@@ -20,19 +20,18 @@ export class MainLayout implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly hasSelectedChat = () => this.chatFacade.selectedChat() !== null;
+  readonly hasSelectedChat = () => this.chatFacade.selectedChat() != null;
   readonly showPushPrompt = this.push.shouldPrompt;
   readonly isPushBusy = this.push.isBusy;
+
 
   ngOnInit(): void {
     void this.push.init();
 
-    // المستخدم داس على notification والتطبيق مفتوح
     this.push.openChat$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((chatId) => void this.openChat(chatId));
 
-    // المستخدم داس على notification والتطبيق كان مقفول: /chat?chatId=...
     const chatId = this.route.snapshot.queryParamMap.get('chatId');
     if (chatId) {
       void this.openChat(chatId);
