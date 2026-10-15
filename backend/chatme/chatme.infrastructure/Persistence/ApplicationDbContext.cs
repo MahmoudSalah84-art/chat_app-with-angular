@@ -20,10 +20,10 @@ namespace chatme.infrastructure.Persistence
 		public DbSet<Chat> Chats => Set<Chat>();
 		public IQueryable<Message> MessagesReadOnly => Set<Message>();
 		public DbSet<Message> Messages => Set<Message>();
+		public DbSet<WebPushSubscription> PushSubscriptions => Set<WebPushSubscription>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			// لازم base الأول - هي المسؤولة عن تعريف جداول Identity كلها
 			base.OnModelCreating(modelBuilder);
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 		}
