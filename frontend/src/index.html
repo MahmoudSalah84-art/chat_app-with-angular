@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+  <meta name="theme-color" content="#00a884">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <meta charset="utf-8">
   <title>chatme</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <script>
     // يطبّق class="dark" فورًا قبل ما Angular يحمّل، عشان نمنع فلاش الشاشة البيضا
     (function () {
@@ -14,7 +16,7 @@
       if (isDark) document.documentElement.classList.add('dark');
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="/manifest.webmanifest">
 </head>
 <body>
   <app-root></app-root>
