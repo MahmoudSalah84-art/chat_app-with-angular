@@ -1,9 +1,13 @@
 {
   "name": "whatsapp-clone",
   "short_name": "whatsapp-clone",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/chat",
+  "scope": "/",
   "display": "standalone",
-  "scope": "./",
-  "start_url": "./",
+  "background_color": "#111b21",
+  "theme_color": "#00a884",
   "icons": [
     {
       "src": "icons/icon-72x72.png",
