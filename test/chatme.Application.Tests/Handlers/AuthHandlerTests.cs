@@ -37,4 +37,35 @@ namespace chatme.Application.Tests.Handlers
 		}
 	}
 
+
+	[TestFixture]
+	public class RegisterUserCommandHandlerTests
+	{
+		[Test]
+		public async Task Delegates_all_fields_to_identity_service()
+		{
+			var identity = Substitute.For<IIdentityService>();
+			identity.RegisterAsync("mahmoud", "a@b.com", "123456", Arg.Any<CancellationToken>())
+				.Returns(Result<AuthResponseDto>.Success(TestData.Auth()));
+
+			var result = await new RegisterUserCommandHandler(identity)
+				.Handle(new RegisterUserCommand("mahmoud", "a@b.com", "123456"), CancellationToken.None);
+
+			ResultAssert.IsSuccess(result);
+			await identity.Received(1).RegisterAsync("mahmoud", "a@b.com", "123456", Arg.Any<CancellationToken>());
+		}
+
+		[Test]
+		public async Task Duplicate_email_conflict_is_passed_through()
+		{
+			var identity = Substitute.For<IIdentityService>();
+			identity.RegisterAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(Result<AuthResponseDto>.Conflict("exists"));
+
+			var result = await new RegisterUserCommandHandler(identity)
+				.Handle(new RegisterUserCommand("mahmoud", "a@b.com", "123456"), CancellationToken.None);
+
+			ResultAssert.IsFailure(result, ResultErrorType.Conflict);
+		}
+	}
 }
