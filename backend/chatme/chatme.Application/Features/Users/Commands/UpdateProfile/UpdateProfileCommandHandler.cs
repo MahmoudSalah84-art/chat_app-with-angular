@@ -1,11 +1,8 @@
-﻿using chatme.Application.Common;
-using chatme.Application.Common.DTO;
+﻿using chatme.Application.Common.DTO;
 using chatme.Application.Common.Interfaces;
 using chatme.Domain.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace chatme.Application.Features.Users.Commands.UpdateProfile
 {
@@ -23,5 +20,4 @@ namespace chatme.Application.Features.Users.Commands.UpdateProfile
 			return identityService.UpdateProfileAsync(userId.Value, request.Name, request.About, request.AvatarUrl, cancellationToken);
 		}
 	}
-
 }
