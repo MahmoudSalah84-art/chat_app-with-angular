@@ -21,8 +21,10 @@ export class NewChat{
   readonly filteredContacts = computed(() => {
     const query = this._searchQuery().trim().toLowerCase();
     const contacts = this.chatFacade.contacts();
-    if (!query) return contacts;
-    return contacts.filter((contact) => contact.email.toLowerCase().includes(query));
+    //if (!query) return contacts;
+    if (!query) return [];
+    //return contacts.filter((contact) => contact.email.toLowerCase().includes(query));
+    return contacts.filter((contact) => contact.email.toLowerCase() === (query));
   });
 
   constructor() {
