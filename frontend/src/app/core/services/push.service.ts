@@ -137,11 +137,8 @@ export class PushService {
   }
  
   // ─────────────────────────── Internals ───────────────────────────
- 
   private getRegistration(): Promise<ServiceWorkerRegistration> {
-    this.registrationPromise ??= navigator.serviceWorker
-      .register(SW_URL, { scope: '/', updateViaCache: 'none' })
-      .then(() => navigator.serviceWorker.ready);
+    this.registrationPromise ??= navigator.serviceWorker.ready;
     return this.registrationPromise;
   }
  
