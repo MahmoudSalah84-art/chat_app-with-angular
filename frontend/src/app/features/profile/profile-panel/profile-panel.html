@@ -11,16 +11,25 @@
   @if (currentUser(); as user) {
     <div class="flex-1 overflow-y-auto">
       <div class="flex flex-col items-center py-8 bg-white dark:bg-wa-dark-panel">
-        <input #avatarInput type="file" accept="image/*" class="hidden" (change)="onAvatarSelected($event)" />
-        <button (click)="onChangeAvatarClick()" class="relative group" aria-label="تغيير الصورة الشخصية">
-          <app-avatar [src]="user.avatarUrl" [size]="160" />
-          <div class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 3l-1.7 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.3L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
-            </svg>
-            <span class="text-xs">تغيير الصورة</span>
-          </div>
+        <input #avatarInput type = "file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onAvatarSelected($event)" />
+        <button class="relative group rounded-full" aria-label="تغيير الصورة الشخصية" type="button" (click)="onChangeAvatarClick()" [disabled]="isUploadingAvatar()" >
+          <app-avatar [src]="avatarPreview() ?? currentUser()?.avatarUrl ?? ''" [size]="160" />
+          @if (isUploadingAvatar()) {
+            <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center"  role="status" aria-label="جاري رفع الصورة" >
+              <span class="w-9 h-9 rounded-full border-4 border-white/30 border-t-white animate-spin"></span>
+            </div>
+          } 
+          @else {
+            <div class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white" >
+              <span class="text-xs">تغيير الصورة</span>
+            </div>
+          }
         </button>
+        @if (avatarError(); as error) {
+          <p class="mt-3 text-sm text-red-500 text-center" role="alert">
+            {{ error }}
+          </p>
+        }
       </div>
 
       <div class="px-6 py-4 bg-white dark:bg-wa-dark-panel border-t border-gray-100 dark:border-wa-dark-border">

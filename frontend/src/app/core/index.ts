@@ -26,3 +26,4 @@ export type { FileUploadResponse, DocumentMessageContent } from './models/upload
 // enums/
 export { MessageType } from './enums/message-type.enum';
 export { MessageStatus } from './enums/message-status.enum';
+export { AvatarTypes } from './enums/AvatarTypes.enum';
