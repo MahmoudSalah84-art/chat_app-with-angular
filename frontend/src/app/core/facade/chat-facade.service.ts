@@ -17,6 +17,7 @@ export class ChatFacade {
 
   // ─── Expose State للـ Components ───
   readonly chats = this.state.chats;
+  //readonly chatsUsers = this.chats().flatMap(c => c.participants).filter(u => u.id !== this.currentUser()?.id);
   readonly selectedChat = this.state.selectedChat;
   readonly selectedMessages = this.state.selectedMessages;
   readonly contacts = this.state.contacts;
@@ -92,6 +93,10 @@ export class ChatFacade {
     return m && !m.isDeleted ? m : undefined; 
   });
 
+  readonly chatsUsers = computed(() => {
+    const user = this.chats().flatMap(c => c.participants).filter(u => u.id !== this.currentUser()?.id);
+    return user
+  });
 
   // ─── Actions ───
   async loadChats() {
@@ -103,6 +108,10 @@ export class ChatFacade {
     const contacts = await this.api.loadContacts();
     this.state.setContacts(contacts);
   }
+  // async searshUsers(query: string) {
+  //   const users = await this.api.searchUsers(query);
+  //   return users;
+  // }
 
   async selectChat(chatId: string) {
     this.state.selectChat(chatId);
