@@ -20,7 +20,7 @@ namespace chatme.Application.Features.Users.Commands.UpdateProfile
 			if (userId is null)
 				return Task.FromResult(Result<UserDto>.Unauthorized("لازم تسجل دخول الأول"));
 
-			return identityService.UpdateProfileAsync(userId.Value, request.Name, request.About, request.AvatarUrl, cancellationToken);
+			return identityService.UpdateProfileAsync(userId.Value, request.Name, request.About, null, cancellationToken);
 		}
 	}
 

@@ -23,4 +23,14 @@ export class UserApiService {
       this.http.get<User[]>(`${this.apiUrl}/users/search`, { params: { q: query } }),
     );
   }
+
+  uploadAvatar(file: File): Promise<User> {
+    const form = new FormData();
+
+    form.append('file', file, file.name);
+
+    return firstValueFrom(
+      this.http.post<User>(`${this.apiUrl}/users/me/avatar`, form)
+    );
+  }
 }

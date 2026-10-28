@@ -11,5 +11,7 @@ namespace chatme.Application.Common.Interfaces
 			Stream content, string fileName, MessageType type, CancellationToken cancellationToken = default);
 
 		Task DeleteAsync(string publicId, MessageType type, CancellationToken cancellationToken = default);
+		Task<Result<StoredFile>> UploadAvatarAsync(
+				Stream content,string fileName,Guid userId,CancellationToken cancellationToken = default);
 	}
 }
