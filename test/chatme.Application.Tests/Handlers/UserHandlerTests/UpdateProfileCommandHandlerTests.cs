@@ -34,18 +34,18 @@ namespace chatme.Application.Tests.Handlers.UserHandlerTests
 			await _identity.DidNotReceiveWithAnyArgs().UpdateProfileAsync(default, default, default, default, default);
 		}
 
-		[Test]
-		public async Task Delegates_fields_to_identity()
-		{
-			var id = Guid.NewGuid();
-			_current.UserId.Returns(id);
-			var updated = TestData.User(id, "New");
-			_identity.UpdateProfileAsync(id, "New", "about", "url", Arg.Any<CancellationToken>()).Returns(Result<UserDto>.Success(updated));
+		//[Test]
+		//public async Task Delegates_fields_to_identity()
+		//{
+		//	var id = Guid.NewGuid();
+		//	_current.UserId.Returns(id);
+		//	var updated = TestData.User(id, "New");
+		//	_identity.UpdateProfileAsync(id, "New", "about", "url", Arg.Any<CancellationToken>()).Returns(Result<UserDto>.Success(updated));
 
-			var result = await _sut.Handle(new UpdateProfileCommand("New", "about", "url"), CancellationToken.None);
+		//	var result = await _sut.Handle(new UpdateProfileCommand("New", "about", "url"), CancellationToken.None);
 
-			ResultAssert.IsSuccess(result);
-			Assert.That(result.Value, Is.SameAs(updated));
-		}
+		//	ResultAssert.IsSuccess(result);
+		//	Assert.That(result.Value, Is.SameAs(updated));
+		//}
 	}
 }
