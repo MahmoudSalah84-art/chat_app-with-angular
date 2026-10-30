@@ -21,12 +21,14 @@ export class AppUpdateService {
 
   async updateApp(): Promise<void> {
     try {
-      const activated = await this.swUpdate.activateUpdate();
+        const activated = await this.swUpdate.activateUpdate();
 
-      if (activated)  window.location.reload();
-
-    } catch (error) {
-      console.error('Update failed:', error);
+        if (activated) 
+            window.location.reload();
+            this.updateAvailable.set(false);
+    }
+    catch (error) {
+        console.error('Update failed:', error);
     }
   }
 }
