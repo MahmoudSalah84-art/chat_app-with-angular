@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../../test/chatme.Application.Tests/chatme.Application.Tests.csproj" Id="c8d0e540-c918-463e-8ee3-71ec0cd62bcf" />
   <Project Path="chatme.API/chatme.API.csproj" />
   <Project Path="chatme.Application/chatme.Application.csproj" Id="765faf02-f9e7-4062-ac05-94afb4536e4f" />
   <Project Path="chatme.Domain/chatme.Domain.csproj" Id="0a57257e-7c96-44b4-ad30-c1dbdeb41216" />

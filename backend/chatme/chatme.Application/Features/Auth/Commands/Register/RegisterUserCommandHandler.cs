@@ -1,6 +1,4 @@
-﻿
-using chatme.Application.Common;
-using chatme.Application.Common.DTO;
+﻿using chatme.Application.Common.DTO;
 using chatme.Application.Common.Interfaces;
 using chatme.Domain.Common;
 using MediatR;

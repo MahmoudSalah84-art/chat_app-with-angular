@@ -1,7 +1,4 @@
 ﻿using chatme.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace chatme.Domain.Common
 {
@@ -33,15 +30,11 @@ namespace chatme.Domain.Common
 		public static Result Unauthorized(string error) => new(false, ResultErrorType.Unauthorized, [error]);
 		public static Result Conflict(string error) => new(false, ResultErrorType.Conflict, [error]);
 
+		// this is used if you want to create  a list of errors
 		static Result IResult<Result>.CreateFailure(ResultErrorType errorType, IReadOnlyList<string> errors) =>
 			new(false, errorType, errors);
 
-		/// <summary>
-		/// بيحوّل Result فاشل لنوع Result&lt;T&gt; تاني بنفس سبب الفشل بالظبط.
-		/// مفيد جدًا لما تنادي عملية بترجع Result وعايز "تمرر" نفس فشلها لدالة
-		/// بترجع Result&lt;T&gt; مختلف، من غير ما تعيد كتابة رسالة الخطأ.
-		/// مثال: `if (chatResult.IsFailure) return chatResult.ToFailure&lt;ChatDto&gt;();`
-		/// </summary>
+		// for returning a Result<T> from a Result without a value
 		public Result<TValue> ToFailure<TValue>()
 		{
 			if (IsSuccess)
@@ -51,7 +44,6 @@ namespace chatme.Domain.Common
 		}
 	}
 
-	/// <summary>Result بيحمل قيمة معاه (T) في حالة النجاح بس.</summary>
 	public sealed class Result<T> : Result, IResult<Result<T>>
 	{
 		public T? Value { get; }
@@ -77,5 +69,4 @@ namespace chatme.Domain.Common
 		static Result<T> IResult<Result<T>>.CreateFailure(ResultErrorType errorType, IReadOnlyList<string> errors) =>
 			new(false, errorType, errors, default);
 	}
-
 }
