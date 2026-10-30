@@ -23,7 +23,7 @@ export class NewGroup {
   private readonly uiService = inject(UiService);
   private readonly avatarInput = viewChild<ElementRef<HTMLInputElement>>('avatarInput');
 
-  readonly contacts = this.chatFacade.contacts;
+  readonly chatsUsers = this.chatFacade.chatsUsers;
   readonly step = signal<Step>('selectMembers');
   readonly isCreating = signal(false);
 
@@ -35,18 +35,17 @@ export class NewGroup {
 
   readonly filteredContacts = computed(() => {
     const query = this._searchQuery().trim().toLowerCase();
-    if (!query) return this.contacts();
-    return this.contacts().filter((c) => c.name.toLowerCase().includes(query));
+    if (!query) return this.chatsUsers();
+    const Contacts = this.chatsUsers().filter((c) => c?.name?.toLowerCase().includes(query));
+    return Contacts;
   });
 
   readonly selectedIds = this._selectedIds.asReadonly();
   readonly selectedCount = computed(() => this._selectedIds().size);
 
-  readonly selectedContacts = computed(() => this.contacts().filter((c) => this._selectedIds().has(c.id)));
-
-  constructor() {
-    if (this.contacts().length === 0) void this.chatFacade.loadContacts();
-  }
+  readonly selectedContacts = computed(() =>
+    this.chatsUsers().filter((c) => this._selectedIds().has(c.id)),
+  );
 
   onSearchChange(value: string): void {
     this._searchQuery.set(value);

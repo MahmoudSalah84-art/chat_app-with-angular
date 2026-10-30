@@ -1,6 +1,6 @@
 {
-  "name": "whatsapp-clone",
-  "short_name": "whatsapp-clone",
+  "name": "chatme",
+  "short_name": "cm",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/chat",

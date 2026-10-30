@@ -71,5 +71,72 @@ namespace chatme.infrastructure.Services
 			if (result.Error is not null)
 				logger.LogWarning("Cloudinary delete failed for {PublicId}: {Message}", publicId, result.Error.Message);
 		}
+
+
+		public async Task<Result<StoredFile>> UploadAvatarAsync(
+		Stream content,
+		string fileName,
+		Guid userId,
+		CancellationToken cancellationToken = default)
+		{
+			var uploadParams = new ImageUploadParams
+			{
+				File = new FileDescription(fileName, content),
+
+				PublicId = $"{_settings.Folder}/avatars/{userId:N}",
+
+				Overwrite = true,
+
+				Invalidate = true,
+
+				AllowedFormats = ["jpg", "jpeg", "png", "webp"],
+
+				Transformation = new Transformation()
+					.Width(512)
+					.Height(512)
+					.Crop("fill")
+					.Gravity("face")
+					.Quality("auto")
+			};
+
+			try
+			{
+				var result = await cloudinary.UploadAsync(
+					uploadParams,
+					cancellationToken);
+
+				if (result.Error is not null ||
+					string.IsNullOrWhiteSpace(result.SecureUrl?.ToString()))
+				{
+					logger.LogError(
+						"Cloudinary avatar upload failed for {UserId}: {Message}",
+						userId,
+						result.Error?.Message ?? "Empty secure URL");
+
+					return Result<StoredFile>.Failure(
+						"حصلت مشكلة وإحنا بنرفع الصورة، جرب تاني");
+				}
+
+				var storedImage = new StoredFile(
+					result.SecureUrl.ToString(),
+					result.PublicId);
+
+				return Result<StoredFile>.Success(storedImage);
+			}
+			catch (OperationCanceledException)
+			{
+				throw;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(
+					ex,
+					"Cloudinary avatar upload failed for {UserId}",
+					userId);
+
+				return Result<StoredFile>.Failure(
+					"حصلت مشكلة وإحنا بنرفع الصورة، جرب تاني");
+			}
+		}
 	}
 }
