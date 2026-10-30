@@ -15,6 +15,8 @@ export { SignalRService } from './services/signalr.service';
 export { ThemeService } from './services/theme.service';
 export { UiService } from './services/ui.service';
 export { PushService } from './services/push.service';
+export { AppUpdateService } from './services/app-update.service';
+
 
 // models/
 export type { Chat } from './models/chat.model';
