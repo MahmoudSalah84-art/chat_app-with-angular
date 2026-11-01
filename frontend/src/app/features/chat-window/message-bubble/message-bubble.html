@@ -144,20 +144,34 @@
         <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ time() }}</span>
 
         @if (isOwnMessage() && !message().isDeleted) { 
-         <span
-            class="shrink-0 transition-colors"
-            [class.text-gray-400]="status() !== statusEnum.Read"
-            [class.text-[#53bdeb]]="status() === statusEnum.Read"
-            [attr.aria-label]="status() === statusEnum.Read ? 'اتقرت' : status() === statusEnum.Delivered ? 'وصلت' : 'اتبعتت'"
-          >
-            <svg width="17" height="16" viewBox="0 0 17 16" fill="none" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 8.5l3.5 3.5L11 4.5" /> <!-- This is the first checkmark -->
-              @if (status() !== statusEnum.Sent) {
-                <path d="M5.5 8.5L9 12l6.5-7.5" />
-              }
-            </svg>
-          </span>
+         @if (status() === statusEnum.Sending) {
+            <span class="text-gray-400 dark:text-gray-500 inline-flex items-center" title="جاري الإرسال...">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+          } @else if (status() === statusEnum.Sent) {
+            <span class="text-gray-400 dark:text-gray-500 inline-flex items-center" title="تم الإرسال">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+          } @else if (status() === statusEnum.Delivered) {
+            <span class="text-gray-400 dark:text-gray-500 inline-flex items-center" title="تم التسليم">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L7 17l-5-5"/>
+                <path d="M22 10l-7.5 7.5L13 16"/>
+              </svg>
+            </span>
+          } @else if (status() === statusEnum.Read) {
+            <span class="text-[#53bdeb] dark:text-[#53bdeb] inline-flex items-center" title="تمت القراءة">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L7 17l-5-5"/>
+                <path d="M22 10l-7.5 7.5L13 16"/>
+              </svg>
+            </span>
+          }
         }
     </div>
   </div>
