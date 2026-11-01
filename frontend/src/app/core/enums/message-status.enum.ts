@@ -1,6 +1,6 @@
 export enum MessageStatus {
-  Sending = 'sending',
-  Sent = 'sent',  
-  Delivered = 'delivered',  
-  Read = 'read', 
-  Failed = 'failed',}
+  Sending = -1, 
+  Sent = 0, 
+  Delivered = 1,  
+  Read = 2, 
+}
