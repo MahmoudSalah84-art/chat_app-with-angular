@@ -1,10 +1,12 @@
-﻿using chatme.Application.Features.Push.Commands.SubscribePush;
+﻿using chatme.Application.Features.Push.Commands.ConfirmPushReceipt;
+using chatme.Application.Features.Push.Commands.SubscribePush;
 using chatme.Application.Features.Push.Commands.UnsubscribePush;
 using chatme.infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace chatme.API.Controllers
 {
@@ -34,5 +36,14 @@ namespace chatme.API.Controllers
 		[HttpPost("unsubscribe")]
 		public async Task<IActionResult> Unsubscribe(UnsubscribePushRequest request, CancellationToken cancellationToken) =>
 			HandleResult(await mediator.Send(new UnsubscribePushCommand(request.Endpoint), cancellationToken));
+
+
+		[AllowAnonymous]
+		[HttpPost("receipts")]
+		public async Task<IActionResult> ConfirmReceipt(
+		[FromBody] ConfirmPushReceiptCommand command,
+		CancellationToken cancellationToken) =>
+			HandleResult(await mediator.Send(command, cancellationToken));
+
 	}
 }

@@ -7,10 +7,14 @@
 		Guid ChatId,
 		Guid MessageId,
 		string Tag,
-		DateTime SentAtUtc);
+		DateTime SentAtUtc,
+		string ReceiptToken);
 
 	public interface IWebPushSender
 	{
-		Task SendAsync(IReadOnlyCollection<Guid> userIds, PushPayload payload, CancellationToken cancellationToken = default);
+		Task SendAsync(
+			Guid userId,
+			PushPayload payload,
+			CancellationToken cancellationToken = default);
 	}
 }
