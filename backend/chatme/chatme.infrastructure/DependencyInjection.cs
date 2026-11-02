@@ -74,6 +74,9 @@ namespace chatme.infrastructure
 			services.AddSingleton<IPushJobQueue>(sp => sp.GetRequiredService<PushJobQueue>());
 			services.AddHostedService<PushDispatchWorker>();
 
+			services.AddScoped<IPushReceiptTokenService, PushReceiptTokenService>();
+
+
 			return services;
 		}
 	}

@@ -21,6 +21,7 @@ namespace chatme.infrastructure.Persistence
 		public IQueryable<Message> MessagesReadOnly => Set<Message>();
 		public DbSet<Message> Messages => Set<Message>();
 		public DbSet<WebPushSubscription> PushSubscriptions => Set<WebPushSubscription>();
+		public DbSet<PushReceiptToken> PushReceiptTokens => Set<PushReceiptToken>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

@@ -24,29 +24,55 @@ self.addEventListener('push', (event) => {
 async function handlePush(event) {
   const data = parsePayload(event);
 
-  // لو التطبيق ظاهر قدام المستخدم، الرسالة وصلته بالفعل عن SignalR وبتتعرض جوه الشات، فمنعرضش notification.
-  // (Chrome بيسمح بتخطّي الـ notification بس في الحالة دي: لازم يكون فيه window ظاهر فعلاً.)
-  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-  if (windows.some((client) => client.visibilityState === 'visible')) return;
+  // Confirm delivery as soon as the push reaches the Service Worker.
+  if (data.receiptToken) {
+    await confirmPushReceipt(data.receiptToken);
+  }
+
+  const windows = await self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  });
+
+  // لو التطبيق ظاهر، مش محتاجين نظهر Notification.
+  if (windows.some(client => client.visibilityState === 'visible')) {
+    return;
+  }
 
   const tag = data.tag || `chat-${data.chatId}`;
 
-  // تجميع: لو فيه notification لنفس الشات لسه ظاهرة، نضيف الرسالة الجديدة عليها بدل ما نعمل واحدة جديدة كل مرة
   const existing = await self.registration.getNotifications({ tag });
   const previous = existing[0]?.data;
-  const lines = [...(previous?.lines ?? []), data.body].slice(-MAX_BODY_LINES);
+
+  const lines = [
+    ...(previous?.lines ?? []),
+    data.body
+  ].slice(-MAX_BODY_LINES);
+
   const count = (previous?.count ?? 0) + 1;
 
-  await self.registration.showNotification(count > 1 ? `${data.title} • ${count} رسائل` : data.title, {
-    body: lines.join('\n'),
-    icon: data.icon || DEFAULT_ICON,
-    tag,
-    renotify: true, // يرن/يهتز تاني حتى لو نفس الـ tag
-    lang: 'ar',
-    dir: 'rtl',
-    timestamp: data.sentAtUtc ? Date.parse(data.sentAtUtc) : Date.now(),
-    data: { chatId: data.chatId, messageId: data.messageId, count, lines },
-  });
+  await self.registration.showNotification(
+    count > 1 ? `${data.title} • ${count} رسائل` : data.title,
+    {
+      body: lines.join('\n'),
+      icon: data.icon || DEFAULT_ICON,
+      tag,
+      renotify: true,
+      lang: 'ar',
+      dir: 'rtl',
+      timestamp: data.sentAtUtc
+        ? Date.parse(data.sentAtUtc)
+        : Date.now(),
+
+      data: {
+        chatId: data.chatId,
+        messageId: data.messageId,
+        receiptToken: data.receiptToken,
+        count,
+        lines
+      }
+    }
+  );
 }
 
 function parsePayload(event) {
@@ -109,3 +135,22 @@ self.addEventListener('pushsubscriptionchange', (event) => {
     })(),
   );
 });
+
+// ─────────────────────────── Receipt confirmation ───────────────────────────
+async function confirmPushReceipt(receiptToken) {
+  try {
+    const response = await fetch('/api/push/receipts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ receiptToken })
+    });
+
+    if (!response.ok) {
+      console.error('Push receipt confirmation failed:', response.status);
+    }
+  } catch (error) {
+    console.error('Push receipt request failed:', error);
+  }
+}

@@ -14,6 +14,8 @@ namespace chatme.Application.Common.Interfaces
 
 		DbSet<WebPushSubscription> PushSubscriptions { get; }
 
+		DbSet<PushReceiptToken> PushReceiptTokens { get; }
+
 		Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 	}
 
