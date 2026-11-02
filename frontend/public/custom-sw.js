@@ -139,7 +139,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 // ─────────────────────────── Receipt confirmation ───────────────────────────
 async function confirmPushReceipt(receiptToken) {
   try {
-    const response = await fetch('chatme-api.runasp.net/api/push/receipts', {
+    const response = await fetch('https://chatme-api.runasp.net/api/push/receipts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
