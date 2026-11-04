@@ -20,13 +20,25 @@ namespace chatme.API.Hubs
 {
 
 	[Authorize]
-	public sealed class ChatHub(IMediator mediator , ICurrentUserService currentUser) : Hub
+	public sealed class ChatHub(IMediator mediator ,
+		ICurrentUserService currentUser,
+		IUserConnectionManager connectionManager,
+		ICurrentUserService currentUserService,
+		ILogger<ChatHub> logger) : Hub
 	{
 		public override async Task OnConnectedAsync()
 		{
 			try
 			{
-				Console.WriteLine($"SignalR Connected: {Context.ConnectionId}");
+				var userId = currentUserService.UserId;
+
+				if (userId is null)
+				{
+					Context.Abort();
+					return;
+				}
+
+				await connectionManager.AddConnectionAsync(userId.Value,Context.ConnectionId);
 
 				await mediator.Send(new SetOnlineStatusCommand(true));
 
@@ -40,7 +52,14 @@ namespace chatme.API.Hubs
 							Context.ConnectionId,
 							SignalRChatNotificationService.GroupName(chat.Id));
 					}
-					await mediator.Send(new MarkAllMessagesDeliveredCommand());
+					try
+					{
+						await mediator.Send(new MarkAllMessagesDeliveredCommand());
+					}
+					catch (Exception ex)
+					{
+						logger.LogError(ex, "Failed to update delivery receipts");
+					}
 				}
 
 				await base.OnConnectedAsync();
@@ -55,7 +74,21 @@ namespace chatme.API.Hubs
 
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
-			await mediator.Send(new SetOnlineStatusCommand(false));
+			var userId = currentUserService.UserId;
+
+			if (userId is not null)
+			{
+				await connectionManager.RemoveConnectionAsync(userId.Value, Context.ConnectionId);
+
+				var hasConnections =
+					await connectionManager.HasConnectionsAsync(userId.Value);
+
+				if (!hasConnections)
+				{
+					await mediator.Send(new SetOnlineStatusCommand(false));
+				}
+			}
+
 			await base.OnDisconnectedAsync(exception);
 		}
 

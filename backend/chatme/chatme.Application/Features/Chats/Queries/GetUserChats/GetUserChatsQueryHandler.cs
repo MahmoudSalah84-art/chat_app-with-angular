@@ -18,51 +18,87 @@ namespace chatme.Application.Features.Chats.Queries.GetUserChats
 			if (userId is null)
 				return Result<List<ChatDto>>.Unauthorized("لازم تسجل دخول الأول");
 
+
 			var chats = await dbContext.Chats
-				.Include(c => c.Participants)
-				.Include(c => c.Messages)
-				.Where(c => c.Participants.Any(p => p.UserId == userId) && c.Messages.Any())
+				.AsNoTracking()
+				.Where(c =>
+					c.Participants.Any(p => p.UserId == userId) &&
+					c.Messages.Any())
+				.Select(c => new
+				{
+					Chat = c,
+
+					Participants = c.Participants
+						.Select(p => new
+						{
+							p.UserId,
+							p.LastDeliveredAt,
+							p.LastReadAt
+						})
+						.ToList(),
+
+					LastMessage = c.Messages
+						.OrderByDescending(m => m.SentAt)
+						.ThenByDescending(m => m.Id)
+						.Select(m => MessageProjections.Map(m))
+						.FirstOrDefault()
+				})
 				.ToListAsync(cancellationToken);
 
-			var allParticipantIds = chats
-				.SelectMany(c => c.Participants.Select(p => p.UserId))
-				.Distinct()
-				.ToList();
 
-			var users = await identityService.GetUsersByIdsAsync(allParticipantIds, cancellationToken);
+			// 2. Collect unique participant IDs
+			var participantIds = chats
+			   .SelectMany(c => c.Participants.Select(p => p.UserId))
+			   .Distinct()
+			   .ToList();
+
+
+			// 3. Get users from Identity
+			var users = await identityService.GetUsersByIdsAsync(
+				participantIds,
+				cancellationToken);
+
 			var usersById = users.ToDictionary(u => u.Id);
 
-			var result = chats.Select(chat =>
+
+
+			// 4. Build Chat DTOs
+			var result = chats.Select(item =>
 			{
-				var participantDtos = chat.Participants
+				var participantDtos = item.Participants
 					.Where(p => usersById.ContainsKey(p.UserId))
 					.Select(p => usersById[p.UserId])
 					.ToList();
 
-				var otherParticipant = participantDtos.FirstOrDefault(p => p.Id != userId);
-				var lastMessage = chat.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+				var otherParticipant = participantDtos
+					.FirstOrDefault(p => p.Id != userId);
 
-				var receipts = chat.Participants
-					.Select(p => new ParticipantReceiptDto(p.UserId, p.LastDeliveredAt, p.LastReadAt))
+				var receipts = item.Participants
+					.Select(p => new ParticipantReceiptDto(
+						p.UserId,
+						p.LastDeliveredAt,
+						p.LastReadAt))
 					.ToList();
 
 				return new ChatDto(
-					chat.Id,
-					chat.IsGroup,
-					chat.IsGroup ? (chat.Name ?? "مجموعة") : (otherParticipant?.Name ?? "مستخدم"),
-					chat.IsGroup ? chat.AvatarUrl : (otherParticipant?.AvatarUrl ?? string.Empty),
+					item.Chat.Id,
+					item.Chat.IsGroup,
+					item.Chat.IsGroup
+						? item.Chat.Name ?? "مجموعة"
+						: otherParticipant?.Name ?? "مستخدم",
+					item.Chat.IsGroup
+						? item.Chat.AvatarUrl
+						: otherParticipant?.AvatarUrl ?? string.Empty,
 					participantDtos,
-					lastMessage is null ? null : MessageProjections.Map(lastMessage),
-					chat.GetUnreadCount(userId.Value),
-					receipts);
+					item.LastMessage,
+					item.Chat.GetUnreadCount(userId.Value),
+					receipts
+				);
 			})
 			.OrderByDescending(c => c.LastMessage?.SentAt ?? DateTime.MinValue)
 			.ToList();
 
 			return Result<List<ChatDto>>.Success(result);
 		}
-
-		
 	}
-
 }

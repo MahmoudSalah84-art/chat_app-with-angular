@@ -22,7 +22,7 @@ namespace chatme.Application.Features.Messages.Commands.MarkAllMessagesDelivered
 
 			var chats = await dbContext.Chats
 				.Include(c => c.Participants)
-				.Include(c => c.Messages)
+				//.Include(c => c.Messages) 
 				.Where(c => c.Participants.Any(p => p.UserId == userId))
 				.ToListAsync(cancellationToken);
 
