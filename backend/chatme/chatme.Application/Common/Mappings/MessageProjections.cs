@@ -17,4 +17,5 @@ namespace chatme.Application.Common.Mappings
 		private static readonly Func<Message, MessageDto> Compiled = ToDto.Compile();
 		public static MessageDto Map(Message message) => Compiled(message);
 	}
+	
 }
