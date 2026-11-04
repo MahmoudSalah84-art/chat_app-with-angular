@@ -84,18 +84,40 @@ namespace chatme.infrastructure.Identity
 			return Result<UserDto>.Success(MapToDto(user));
 		}
 
-		public async Task<Result> SetOnlineStatusAsync(Guid userId, bool isOnline, CancellationToken cancellationToken = default)
+		// we use ExecuteUpdateAsync to avoid loading the user entity into memory, which is more efficient for this operation(race condition)
+		//public async Task<Result> SetOnlineStatusAsync(Guid userId, bool isOnline, CancellationToken cancellationToken = default)
+		//{
+		//	var user = await userManager.FindByIdAsync(userId.ToString());
+		//	if (user is null) return Result.Success();
+
+		//	user.IsOnline = isOnline;
+		//	if (!isOnline) user.LastSeenAt = DateTime.UtcNow;
+
+		//	var result = await userManager.UpdateAsync(user);
+
+		//	return Result.Success();
+
+		//}
+		public async Task<Result> SetOnlineStatusAsync(Guid userId,bool isOnline,CancellationToken cancellationToken = default)
 		{
-			var user = await userManager.FindByIdAsync(userId.ToString());
-			if (user is null) return Result.Success();
+			var query = userManager.Users
+				.Where(u => u.Id == userId);
 
-			user.IsOnline = isOnline;
-			if (!isOnline) user.LastSeenAt = DateTime.UtcNow;
+			var now = DateTime.UtcNow;
 
-			await userManager.UpdateAsync(user);
+			var affectedRows = await query.ExecuteUpdateAsync(
+				setters => setters
+					.SetProperty(u => u.IsOnline, isOnline)
+					.SetProperty(
+						u => u.LastSeenAt,
+						isOnline ? u => u.LastSeenAt : u => now),
+					cancellationToken);
+
+			if (affectedRows == 0)
+				return Result.Failure("User not found");
+
 			return Result.Success();
 		}
-
 		public Task<List<UserDto>> GetContactsAsync(Guid excludeUserId, CancellationToken cancellationToken = default) =>
 			userManager.Users
 				.Where(u => u.Id != excludeUserId )

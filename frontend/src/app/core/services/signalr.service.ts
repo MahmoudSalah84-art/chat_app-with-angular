@@ -64,8 +64,10 @@ export class SignalRService {
 
       this.hubConnection.onclose(error => {
         console.log('SignalR closed:', error);
-      }
-    );}
+      });
+      
+    }
+
 
     this.connectingPromise = this.hubConnection.start();
 
@@ -143,21 +145,18 @@ export class SignalRService {
     return this.invoke<void>('JoinChatGroup', chatId);
   }
 
-
   markAsDelivered(chatId: string, upToMessageId: string): Promise<void> {
   return this.invoke<void>('MarkAsDelivered', chatId, upToMessageId);
   }
 
-  private async invoke<T>( methodName: string, ...args: unknown[]): Promise<T> {
-  await this.connect();
-  return this.hubConnection!.invoke<T>(  methodName, ...args );
-  }
-
-
-  
-  
-
   reactToMessage(chatId: string, messageId: string, emoji: string): Promise<void> {
     return this.invoke<void>('ReactToMessage', chatId, messageId, emoji);
   }
+
+
+
+  private async invoke<T>( methodName: string, ...args: unknown[]): Promise<T> {
+  await this.connect();
+  return this.hubConnection!.invoke<T>(  methodName, ...args );
+  }  
 }

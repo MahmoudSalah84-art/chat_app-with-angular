@@ -76,6 +76,7 @@ namespace chatme.infrastructure
 
 			services.AddScoped<IPushReceiptTokenService, PushReceiptTokenService>();
 
+			services.AddSingleton<IUserConnectionManager, UserConnectionManager>();
 
 			return services;
 		}

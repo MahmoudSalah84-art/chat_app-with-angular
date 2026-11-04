@@ -146,10 +146,7 @@ export class ChatFacade {
     await this.signalR.sendMessage(chatId, MessageType.Text, content.trim(), replyTo);
   }
 
-  async sendImage(dataUrl: string) {
-    const chatId = this.state.selectedChatId();
-    if (chatId) await this.signalR.sendMessage(chatId, MessageType.Image, dataUrl, null);
-  }
+ 
 
   async saveEdit(newContent: string) {
     const chatId = this.state.selectedChatId();
