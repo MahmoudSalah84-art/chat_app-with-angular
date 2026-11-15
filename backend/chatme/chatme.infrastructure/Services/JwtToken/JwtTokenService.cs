@@ -6,7 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace chatme.infrastructure.Services
+namespace chatme.infrastructure.Services.JwtToken
 {
 	public sealed class JwtTokenService(IOptions<JwtSettings> jwtSettings) : IJwtTokenService
 	{

@@ -1,5 +1,4 @@
-﻿
-namespace chatme.infrastructure.Services
+﻿namespace chatme.infrastructure.Services.FileStorage
 {
 	public sealed class CloudinarySettings
 	{

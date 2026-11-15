@@ -1,4 +1,4 @@
-﻿namespace chatme.infrastructure.Services
+﻿namespace chatme.infrastructure.Services.WebPush
 {
 	public sealed class WebPushSettings
 	{

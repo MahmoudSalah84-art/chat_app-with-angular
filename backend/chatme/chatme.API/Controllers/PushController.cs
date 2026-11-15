@@ -1,7 +1,7 @@
 ﻿using chatme.Application.Features.Push.Commands.ConfirmPushReceipt;
 using chatme.Application.Features.Push.Commands.SubscribePush;
 using chatme.Application.Features.Push.Commands.UnsubscribePush;
-using chatme.infrastructure.Services;
+using chatme.infrastructure.Services.WebPush;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

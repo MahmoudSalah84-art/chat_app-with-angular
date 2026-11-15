@@ -3,12 +3,12 @@ using chatme.API.Middleware;
 using chatme.API.Services;
 using chatme.Application.Common.Interfaces;
 using chatme.infrastructure;
-using chatme.infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
 using chatme.Application;
+using chatme.infrastructure.Services.JwtToken;
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================

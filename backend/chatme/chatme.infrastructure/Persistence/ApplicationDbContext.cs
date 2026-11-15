@@ -22,6 +22,7 @@ namespace chatme.infrastructure.Persistence
 		public DbSet<Message> Messages => Set<Message>();
 		public DbSet<WebPushSubscription> PushSubscriptions => Set<WebPushSubscription>();
 		public DbSet<PushReceiptToken> PushReceiptTokens => Set<PushReceiptToken>();
+		public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WebPush;
 
-namespace chatme.infrastructure.Services
+namespace chatme.infrastructure.Services.WebPush
 {
 	public sealed class WebPushSender(
 	ApplicationDbContext dbContext,

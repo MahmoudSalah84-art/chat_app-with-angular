@@ -38,7 +38,7 @@ namespace chatme.infrastructure.Services
 			}
 			catch (OperationCanceledException)
 			{
-				// shutdown عادي
+				// shutdown
 			}
 		}
 	}

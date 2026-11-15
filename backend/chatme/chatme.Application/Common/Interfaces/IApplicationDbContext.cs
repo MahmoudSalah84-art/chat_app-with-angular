@@ -16,6 +16,8 @@ namespace chatme.Application.Common.Interfaces
 
 		DbSet<PushReceiptToken> PushReceiptTokens { get; }
 
+		DbSet<RefreshToken> RefreshTokens { get; }
+
 		Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 	}
 

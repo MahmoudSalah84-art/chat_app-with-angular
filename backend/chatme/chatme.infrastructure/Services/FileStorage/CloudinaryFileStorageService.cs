@@ -6,7 +6,7 @@ using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace chatme.infrastructure.Services
+namespace chatme.infrastructure.Services.FileStorage
 {
 	public sealed class CloudinaryFileStorageService(
 		Cloudinary cloudinary,
